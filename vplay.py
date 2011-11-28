@@ -9,7 +9,7 @@ import re
 import random
 
 import codecs
-import xbmc
+#import xbmc
 
 # See http://developer.boxee.tv/MC_Module
 
@@ -17,6 +17,8 @@ import xbmc
 TV_SHOW = 'TV_SHOW'
 TV_SEASON = 'TV_SEASON'
 TV_EPISODE = 'TV_EPISODE'
+SEARCH_PAGE = 'SEARCH_NEXT_PAGE'
+HD_VIDEOS_PAGE = 'HD_VIDEOS_PAGE'
 
 class Vplay(object):
     BASE_URL = 'http://vplay.ro'
@@ -106,11 +108,19 @@ class Vplay(object):
                 items = self.get_episodes(item)
             elif item_type == TV_EPISODE:
                 self.play_episode(item)
+            elif item_type == SEARCH_PAGE:
+                query = item.GetProperty('query')
+                page = item.GetProperty('page')
+                self.search(query, page)
+            elif item_type == HD_VIDEOS_PAGE:
+                page = item.GetProperty('page')
+                items = self.hd_videos(page)
         else:
             # Load default list
             items = self.get_tv_shows()
 
         if items:
+            self.notify('List updated.')
             mc.GetActiveWindow().GetList(120).SetItems(items)
 
 
@@ -305,29 +315,111 @@ class Vplay(object):
         self.log('Video: %s' % video_url)
 
         # Find subtitle
-        sub_file_path = self._load_subs(episode_id)
+#        sub_file_path = self._load_subs(episode_id)
 
         item = mc.ListItem()
         item.SetPath(attrs['nqURL'])
         item.SetIcon(attrs['th'])
         item.SetTitle(episode_item.GetTitle())
-        self.log('Player title: %s' % item.GetTitle())
         item.SetTVShowTitle(episode_item.GetTitle())
         item.SetThumbnail(episode_item.GetProperty('tv_show_thumb'))
         
         mc.GetPlayer().Play(item)
 
-        if sub_file_path:
-             xbmc.sleep(3000)
-             while (self.GetLastPlayerEvent() != self.EVENT_STARTED):
-                 xbmc.sleep(1000)
-                 xbmc.Player().setSubtitles(sub_file_path)
+#        if sub_file_path:
+#             xbmc.sleep(3000)
+#             while (self.GetLastPlayerEvent() != self.EVENT_STARTED):
+#                 xbmc.sleep(1000)
+#                 xbmc.Player().setSubtitles(sub_file_path)
 
     '''
     Search tv shows
     '''
     def search_tv_shows(self):
-        self.query = mc.ShowDialogKeyboard('Enter search query', '', False)
-        items = self.get_tv_shows(self.query)
+        query = mc.ShowDialogKeyboard('Enter search query', '', False)
+        items = self.get_tv_shows(query)
         mc.GetActiveWindow().GetList(120).SetItems(items)
+
+    def search(self, query=None, page='0'):
+        page = int(page)
+        if not query:
+            query = mc.ShowDialogKeyboard('Enter search query', '', False)
+            
+        url = '%s/search?q=%s&page=%d' % (self.get_base_url(), query, page)
+        data = self.http.Get(url)
+        matches = re.compile('<a href="(/watch/.*?/)" class="vbox-th"><img src="(.*?)" width="168" height="96" alt="(.*?)"').findall(data)
+
+        self.log('Videos: %s' % matches)
+        items = mc.ListItems()
         
+        # match[0] = path, match[1] = img url , match[2] = title
+        for video in matches:
+            item = mc.ListItem(mc.ListItem.MEDIA_UNKNOWN)
+            item.SetLabel(video[2])
+            item.SetPath(video[0])
+            item.SetTitle(video[2])
+            item.SetTVShowTitle(video[2])
+            item.SetThumbnail(video[1])
+            item.SetProperty('type', TV_EPISODE)
+            item.SetProperty('tv_show', 'Videos')
+            item.SetProperty('tv_season', '')
+            item.SetProperty('tv_show_thumb', video[1])
+            items.append(item)
+
+        item = mc.ListItem(mc.ListItem.MEDIA_UNKNOWN)
+        item.SetLabel('Next Page')
+        item.SetProperty('type', SEARCH_PAGE)
+        item.SetProperty('page', str(page+1))
+        item.SetProperty('query', query)
+        items.append(item)
+
+        if page:
+            item = mc.ListItem(mc.ListItem.MEDIA_UNKNOWN)
+            item.SetLabel('Prev Page')
+            item.SetProperty('type', SEARCH_PAGE)
+            item.SetProperty('page', str(page-1))
+            item.SetProperty('query', query)
+            items.append(item)
+
+        mc.GetActiveWindow().GetList(120).SetItems(items)
+
+    def hd_videos(self, page='0'):
+        page = int(page)
+        url = '%s/hd_music/?page=%d' % (self.get_base_url(), page)
+        data = self.http.Get(url)
+        matches = re.compile('<a href="(/watch/.*?/)" class="vbox-th"><img src="(.*?)" width="168" height="96" alt="(.*?)"').findall(data)
+
+        self.log('HD Videos: %s' % matches)
+        items = mc.ListItems()
+
+        # match[0] = path, match[1] = img url , match[2] = title
+        for video in matches:
+            item = mc.ListItem(mc.ListItem.MEDIA_UNKNOWN)
+            item.SetLabel(video[2])
+            item.SetPath(video[0])
+            item.SetTitle(video[2])
+            item.SetTVShowTitle(video[2])
+            item.SetThumbnail(video[1])
+            item.SetProperty('type', TV_EPISODE)
+            item.SetProperty('tv_show', 'Videos')
+            item.SetProperty('tv_season', '')
+            item.SetProperty('tv_show_thumb', video[1])
+            items.append(item)
+
+        # Add nav buttons
+        item = mc.ListItem(mc.ListItem.MEDIA_UNKNOWN)
+        item.SetLabel('Next Page')
+        item.SetProperty('type', HD_VIDEOS_PAGE)
+        item.SetProperty('page', str(page+1))
+        items.append(item)
+
+        if page:
+            item = mc.ListItem(mc.ListItem.MEDIA_UNKNOWN)
+            item.SetLabel('Prev Page')
+            item.SetProperty('type', HD_VIDEOS_PAGE)
+            item.SetProperty('page', str(page-1))
+            items.append(item)
+
+        mc.GetActiveWindow().GetList(120).SetItems(items)
+#        return items
+
