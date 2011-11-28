@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <app>
-  <id>vplay</id>
+  <id>ro.moprea.vplay</id>
   <name>VPlay</name>
   <version>1.2</version>
   <description>Videos from Vplay</description>
