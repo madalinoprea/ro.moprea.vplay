@@ -14,5 +14,5 @@
   <platform>all</platform>
   <minversion>0.9.11</minversion>
   <startWindow>main</startWindow>
-  <test-app>true</test-app>
+  <!--<test-app>true</test-app>-->
 </app>
