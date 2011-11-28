@@ -28,7 +28,6 @@ class Vplay(object):
         mc.ShowDialogNotification(msg)
 
     def __init__(self):
-        self.log('Init stuff ...')
         self.http = mc.Http()
 
         config = mc.GetApp().GetLocalConfig()
@@ -36,7 +35,6 @@ class Vplay(object):
         self.password = config.GetValue('password')
 
     def get_username(self):
-        self.log('Username %s' % self.username)
         if not self.username:
             self.username = mc.ShowDialogKeyboard('Enter Username', '', False)
             config = mc.GetApp().GetLocalConfig()
@@ -59,7 +57,6 @@ class Vplay(object):
         username = self.get_username()
         password = self.get_password()
 
-        self.notify('Try log in with %s and %s' % (username, password))
         if username and password:
             params = 'username=%s&pwd=%s&remember_me=%s&login=Conectare' % (username, password, 1)
             self.http.Post(self.get_login_url(), params)
@@ -131,15 +128,17 @@ class Vplay(object):
         self.log('%s' % match)
         
         items = mc.ListItems()
+
         # match[2] Image
         for show in founded:
+            self.log('Image url: %s' % show[3])
+
             show_item = mc.ListItem(mc.ListItem.MEDIA_UNKNOWN)
             show_item.SetLabel(show[2])    # Title
             show_item.SetPath(show[0])     # Path
-            show_item.SetIcon(show[3])
-            show_item.SetImage(0, show[3])
             show_item.SetTitle(show[2])
             show_item.SetTVShowTitle(show[2])
+            show_item.SetThumbnail(show[3])
 
             # Custom properties
             show_item.SetProperty('type', TV_SHOW)
@@ -164,13 +163,13 @@ class Vplay(object):
             item.SetPath(season[0])
             item.SetTitle(season[3])
             item.SetTVShowTitle(tv_show_item.GetTVShowTitle())
-            item.SetIcon(tv_show_item.GetIcon())
-            item.SetImage(0, tv_show_item.GetImage(0))
+            item.SetThumbnail(tv_show_item.GetThumbnail())
 
             # Set custom
             item.SetProperty('type', TV_SEASON)
             item.SetProperty('tv_show', tv_show_item.GetProperty('tv_show'))
             item.SetProperty('tv_season', season[3])
+            item.SetProperty('tv_show_thumb', tv_show_item.GetThumbnail())
 
             items.append(item)
         return items
@@ -193,14 +192,17 @@ class Vplay(object):
             item = mc.ListItem(mc.ListItem.MEDIA_UNKNOWN)
             item.SetLabel(episode[4])
             item.SetPath(episode[0])
-            item.SetIcon(episode[2])
-            item.SetImage(0, episode[2])
+            item.SetTitle('%s %s %s' % (season_item.GetProperty('tv_show'),
+                                        season_item.GetProperty('tv_season'),
+                                        episode[4]) )
             item.SetTVShowTitle(season_item.GetTVShowTitle())
+            item.SetThumbnail(episode[2])
 
             # custom properties
             item.SetProperty('type', TV_EPISODE)
             item.SetProperty('tv_show', season_item.GetProperty('tv_show'))
             item.SetProperty('tv_season', season_item.GetProperty('tv_season'))
+            item.SetProperty('tv_show_thumb', season_item.GetProperty('tv_show_thumb'))
 
             items.append(item)
         return items
@@ -276,9 +278,7 @@ class Vplay(object):
         self.log('URL: %s' % episode_url)
 #        self.log('Data: %s ' % data)
         match=re.compile('http://vplay.ro/watch/(.+?)/').findall(episode_url)
-        self.log('Episode keys: %s' % match)
         episode_id = match[0]
-        self.log('Episode id: %s'  % episode_id)
 
         url = '%s/play/dinosaur.do?key=%s&rand=%s' % (self.get_base_url(), episode_id, random.random())
         data = self.http.Get(url)
@@ -309,6 +309,11 @@ class Vplay(object):
         item = mc.ListItem()
         item.SetPath(attrs['nqURL'])
         item.SetIcon(attrs['th'])
+        item.SetTitle(episode_item.GetTitle())
+        self.log('Player title: %s' % item.GetTitle())
+        item.SetTVShowTitle(episode_item.GetTitle())
+        item.SetThumbnail(episode_item.GetProperty('tv_show_thumb'))
+        
         mc.GetPlayer().Play(item)
 
 #        if sub_file_path:
@@ -324,9 +329,3 @@ class Vplay(object):
         items = self.get_tv_shows(self.query)
         mc.GetActiveWindow().GetList(120).SetItems(items)
         
-
-
-        
-
-
-

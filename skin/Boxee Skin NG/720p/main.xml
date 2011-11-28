@@ -105,20 +105,22 @@
             </control>
             <control type="image">
                <posy>20</posy>
-               <posx>910</posx>
-               <width>355</width>
-               <height>200</height>
+               <posx>410</posx>
+               <width>500</width>
+               <height>165</height>
                <info>Container(120).Listitem.thumb</info>
             </control>
             <control type="label">
                <posy>230</posy>
-               <posx>1260</posx>
+               <posx>410</posx>
                <align>right</align>
                <width>500</width>
                <height>180</height>
                <info>Container(120).Listitem.property(description)</info>
                <wrapmultiline>true</wrapmultiline>
             </control>
+
+            <!-- MENU -->
             <control type="list" id="120">
                <posy>3</posy>
                <posx>15</posx>
