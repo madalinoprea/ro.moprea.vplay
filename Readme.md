@@ -22,5 +22,5 @@ Current status: alpha (don't be fulled by version number)
  - Check why images (bg) are not rendered: media folder moved to correct subfolder
  - Change icon: Using our custom (weird image)
 
-## Credentials
+## Credits
  - Cornel Damian for https://github.com/corneldamian/xbmc.plugin.vplay.ro
