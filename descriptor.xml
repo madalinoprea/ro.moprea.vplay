@@ -2,7 +2,7 @@
 <app>
   <id>vplay</id>
   <name>VPlay</name>
-  <version>1.1</version>
+  <version>1.2</version>
   <description>Videos from Vplay</description>
   <thumb>http://moprea.ro/repository/images/vplay-boxee-app.png</thumb>
   <repository>http://192.168.1.110/~madalinoprea/repository/</repository>
