@@ -4,11 +4,12 @@ import mc
 
 import simplejson as json
 
-#import codecs
+
 import re
 import random
 
-#import xbmc
+import codecs
+import xbmc
 
 # See http://developer.boxee.tv/MC_Module
 
@@ -237,38 +238,38 @@ class Vplay(object):
 
         return final
 
-#    def _load_subs(self, episode_key, lang='RO'):
-#        subs_url = '%s/play/subs.do' % self.get_base_url()
-#        params = 'key=%s&lang=%s' % (episode_key, lang)
-#        self.log('SUBS URL: %s' % subs_url)
-#        sub_raw_data = self.http.Post(subs_url, params)
-#        file_path = mc.GetTempDir() + episode_key + '.sub'
-#
-#        if sub_raw_data:
-#            try:
-#                sub_data = sub_raw_data.strip('&subsData=').rstrip('\n')
-#                sub_json = json.loads(sub_data)
-#
-#                self.log('Saving sub to %s' % file_path)
-#                file = codecs.open(file_path, encoding='utf-8', mode='w+')
-#                self.lof('File opened')
-#
-#                count = 1
-#                for json_line in sub_json:
-#                    line = '%d\n %s --> %s\n%s\n\n' % (count,
-#                                                       self.convert_time_to_something(json_line['f']),
-#                                                       self.convert_time_to_something(json_line['t']),
-#                                                       json_line['s'])
-#                    self.log('Line: %s' % line)
-#                    file.write(line)
-#                    self.log('Wrote in file')
-#                    count = count + 1
-#                file.close()
-#            except Exception, ex:
-#                file_path = None
-#                self.log('Error loading sub: %s' % ex)
-#
-#        return file_path
+    def _load_subs(self, episode_key, lang='RO'):
+        subs_url = '%s/play/subs.do' % self.get_base_url()
+        params = 'key=%s&lang=%s' % (episode_key, lang)
+        self.log('SUBS URL: %s' % subs_url)
+        sub_raw_data = self.http.Post(subs_url, params)
+        file_path = mc.GetTempDir() + episode_key + '.sub'
+
+        if sub_raw_data:
+            try:
+                sub_data = sub_raw_data.strip('&subsData=').rstrip('\n')
+                sub_json = json.loads(sub_data)
+
+                self.log('Saving sub to %s' % file_path)
+                file = codecs.open(file_path, encoding='utf-8', mode='w+')
+                self.lof('File opened')
+
+                count = 1
+                for json_line in sub_json:
+                    line = '%d\n %s --> %s\n%s\n\n' % (count,
+                                                       self.convert_time_to_something(json_line['f']),
+                                                       self.convert_time_to_something(json_line['t']),
+                                                       json_line['s'])
+                    self.log('Line: %s' % line)
+                    file.write(line)
+                    self.log('Wrote in file')
+                    count = count + 1
+                file.close()
+            except Exception, ex:
+                file_path = None
+                self.log('Error loading sub: %s' % ex)
+
+        return file_path
 
     def play_episode(self, episode_item):
         episode_path = episode_item.GetPath()
@@ -304,7 +305,7 @@ class Vplay(object):
         self.log('Video: %s' % video_url)
 
         # Find subtitle
-#        sub_file_path = self._load_subs(episode_id)
+        sub_file_path = self._load_subs(episode_id)
 
         item = mc.ListItem()
         item.SetPath(attrs['nqURL'])
@@ -316,10 +317,11 @@ class Vplay(object):
         
         mc.GetPlayer().Play(item)
 
-#        if sub_file_path:
-#             while (self.GetLastPlayerEvent() != self.EVENT_STARTED):
-#                 xbmc.sleep(1000)
-#                 xbmc.Player().setSubtitles(sub_file_path)
+        if sub_file_path:
+             xbmc.sleep(3000)
+             while (self.GetLastPlayerEvent() != self.EVENT_STARTED):
+                 xbmc.sleep(1000)
+                 xbmc.Player().setSubtitles(sub_file_path)
 
     '''
     Search tv shows
