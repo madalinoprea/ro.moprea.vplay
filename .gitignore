@@ -1,0 +1,4 @@
+# Ignore files
+.idea
+*.pyo
+.DS_Store
