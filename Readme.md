@@ -6,6 +6,9 @@ Boxee app to browse easier video sharing site http://vplay.ro
  - Add subtitles
  - Create script that builds package (zips everything excluding unwanted files)
  - Create and Publish repository: http://developer.boxee.tv/Custom_Repository
+ - Add pagination for tv shows
+ - Add navigation buttons for series and episodes (Back to TV Show, Back to Series)
+ - Add login status
 
 ## Release Notes
 ### Version 1.4
