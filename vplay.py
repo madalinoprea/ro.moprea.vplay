@@ -22,9 +22,9 @@ SEARCH_PAGE = 'SEARCH_NEXT_PAGE'
 HD_VIDEOS_PAGE = 'HD_VIDEOS_PAGE'
 
 # Control IDs
-LOGIN_BUTTON_ID = 202
-NAVIGATION_LIST_ID = 120
-STATUS_LABEL_ID = 110
+LOGIN_BUTTON_ID = 202           # Login/logout button
+NAVIGATION_LIST_ID = 120        # Navigation menu
+STATUS_LABEL_ID = 110           # Session status (logged in / logged out)
 
 class Vplay(object):
     BASE_URL = 'http://vplay.ro'
@@ -141,10 +141,10 @@ class Vplay(object):
     def load_tv_shows(self):
         # clear nav list
         items = self.get_tv_shows()
-        mc.GetActiveWindow().GetList(120).SetItems(items)
+        mc.GetActiveWindow().GetList(NAVIGATION_LIST_ID).SetItems(items)
 
     def load_next(self):
-        list = mc.GetActiveWindow().GetList(120)
+        list = mc.GetActiveWindow().GetList(NAVIGATION_LIST_ID)
         item = list.GetItem(list.GetFocusedItem())
         items = None # items to populate list
         
@@ -173,7 +173,7 @@ class Vplay(object):
 
         if items:
             self.notify('List updated.')
-            mc.GetActiveWindow().GetList(120).SetItems(items)
+            mc.GetActiveWindow().GetList(NAVIGATION_LIST_ID).SetItems(items)
 
 
     '''
@@ -418,7 +418,7 @@ class Vplay(object):
     def search_tv_shows(self):
         query = mc.ShowDialogKeyboard('Enter search query', '', False)
         items = self.get_tv_shows(query)
-        mc.GetActiveWindow().GetList(120).SetItems(items)
+        mc.GetActiveWindow().GetList(NAVIGATION_LIST_ID).SetItems(items)
 
     def search(self, query=None, page='0'):
         page = int(page)
@@ -448,7 +448,7 @@ class Vplay(object):
 
         self._append_nav(items, page, SEARCH_PAGE, query)
 
-        mc.GetActiveWindow().GetList(120).SetItems(items)
+        mc.GetActiveWindow().GetList(NAVIGATION_LIST_ID).SetItems(items)
 
     def hd_videos(self, page='0'):
         page = int(page)
@@ -476,5 +476,5 @@ class Vplay(object):
         # Add nav buttons
         self._append_nav(items, page, HD_VIDEOS_PAGE)
 
-        mc.GetActiveWindow().GetList(120).SetItems(items)
+        mc.GetActiveWindow().GetList(NAVIGATION_LIST_ID).SetItems(items)
 
