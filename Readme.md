@@ -5,8 +5,6 @@ Boxee app to browse easier video sharing site http://vplay.ro
 Current status: alpha (don't be fulled by version number)
 
 ## TODO
- - Create script that builds package (zips everything excluding unwanted files)
- - Create and Publish repository: http://developer.boxee.tv/Custom_Repository
  - Add navigation buttons for series and episodes (Back to TV Show, Back to Series)
 
 ## Release Notes
@@ -16,6 +14,9 @@ Current status: alpha (don't be fulled by version number)
  - Adds logout option and possibility to reset saved login credentials
  - Adds pagination for tv shows
  - Adds login status
+ - Create app repository: http://moprea.ro/repository
+ - Create script that builds package (zips everything excluding unwanted files) - check FAQ To get the instructions
+
 
 ### Version 1.4
  - Search added for tv shows and common videos
@@ -28,3 +29,11 @@ Current status: alpha (don't be fulled by version number)
 
 ## Credits
  - Cornel Damian for https://github.com/corneldamian/xbmc.plugin.vplay.ro
+
+## FAQ
+ - Package the app:
+ `git archive --format zip --output ~/Sites/repository/download/ro.moprea.vplay-1.5.zip --prefix ro.moprea.vplay/ master`
+ - To sign app package, go here: http://www.boxee.tv/developer/apps
+
+
+
