@@ -142,6 +142,7 @@ class Vplay(object):
         # clear nav list
         items = self.get_tv_shows()
         mc.GetActiveWindow().GetList(NAVIGATION_LIST_ID).SetItems(items)
+        mc.GetActiveWindow().PushState()
 
     def load_next(self):
         list = mc.GetActiveWindow().GetList(NAVIGATION_LIST_ID)
