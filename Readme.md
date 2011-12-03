@@ -5,9 +5,12 @@ Boxee app to browse easier video sharing site http://vplay.ro
 Current status: alpha (don't be fulled by version number)
 
 ## TODO
- - Add navigation buttons for series and episodes (Back to TV Show, Back to Series)
+ - Nothing yet
 
 ## Release Notes
+
+### Version 1.7
+ - Add navigation buttons for series and episodes (Back to TV Show, Back to Series)
 
 ### Version 1.5
  - Loads subtitles available on Vplay
