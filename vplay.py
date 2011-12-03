@@ -15,6 +15,7 @@ import codecs
 
 # options of ListItem type property
 TV_SHOW = 'TV_SHOW'
+TV_SHOW_PAGE = 'TV_SHOW_PAGE'
 TV_SEASON = 'TV_SEASON'
 TV_EPISODE = 'TV_EPISODE'
 SEARCH_PAGE = 'SEARCH_NEXT_PAGE'
@@ -74,6 +75,7 @@ class Vplay(object):
 
         return False
 
+
     # Maybe add base url as setting
     def get_base_url(self):
         return self.BASE_URL
@@ -103,6 +105,9 @@ class Vplay(object):
             item_type = item.GetProperty('type')
             if item_type == TV_SHOW:
                 items = self.get_seasons(item)
+            elif item_type == TV_SHOW_PAGE:
+                page = item.GetProperty('page')
+                items = self.get_tv_shows(page=page)
             elif item_type == TV_SEASON:
                 # must load season's episodes
                 items = self.get_episodes(item)
@@ -125,10 +130,34 @@ class Vplay(object):
 
 
     '''
+    Inserts Next Page and Prev Page buttons
+
+    nav_type    one of this values: TV_SHOW_PAGE, HD_VIDEOS_PAGE, SEARCH_PAGE
+    query       Used for Search
+    '''
+    def _append_nav(self, items, page, nav_type, query=''):
+        # append back button
+        item = mc.ListItem(mc.ListItem.MEDIA_UNKNOWN)
+        item.SetLabel('Next Page')
+        item.SetProperty('type', nav_type)
+        item.SetProperty('page', str(page+1))
+        item.SetProperty('query', query)
+        items.append(item)
+
+        if page:
+            item = mc.ListItem(mc.ListItem.MEDIA_UNKNOWN)
+            item.SetLabel('Prev Page')
+            item.SetProperty('type', nav_type)
+            item.SetProperty('page', str(page-1))
+            item.SetProperty('query', query)
+            items.append(item)
+
+    '''
     Returns a list of tv shows
     '''
-    def get_tv_shows(self, search=None):
-        data = self.http.Get(self.get_tv_shows_url(search=search))
+    def get_tv_shows(self, search=None, page='0'):
+        data = self.http.Get(self.get_tv_shows_url(page=page, search=search))
+        page = int(page)
 
         founded = []
         match = re.compile('<a href="(/serials/browse.do\?sid=[0-9]+)" target="_top" class="group-item"(.+?)title="(.+?)"><img src="(.+?)" width="312" height="103"([ ].?)>(.+?)</a>').findall(data)
@@ -156,6 +185,10 @@ class Vplay(object):
             show_item.SetProperty('tv_show', show[2])
 
             items.append(show_item)
+
+        # append navigation
+        self._append_nav(items, page, TV_SHOW_PAGE)
+
         return items
 
     '''
@@ -366,20 +399,7 @@ class Vplay(object):
             item.SetProperty('tv_show_thumb', video[1])
             items.append(item)
 
-        item = mc.ListItem(mc.ListItem.MEDIA_UNKNOWN)
-        item.SetLabel('Next Page')
-        item.SetProperty('type', SEARCH_PAGE)
-        item.SetProperty('page', str(page+1))
-        item.SetProperty('query', query)
-        items.append(item)
-
-        if page:
-            item = mc.ListItem(mc.ListItem.MEDIA_UNKNOWN)
-            item.SetLabel('Prev Page')
-            item.SetProperty('type', SEARCH_PAGE)
-            item.SetProperty('page', str(page-1))
-            item.SetProperty('query', query)
-            items.append(item)
+        self._append_nav(items, page, SEARCH_PAGE, query)
 
         mc.GetActiveWindow().GetList(120).SetItems(items)
 
@@ -407,19 +427,7 @@ class Vplay(object):
             items.append(item)
 
         # Add nav buttons
-        item = mc.ListItem(mc.ListItem.MEDIA_UNKNOWN)
-        item.SetLabel('Next Page')
-        item.SetProperty('type', HD_VIDEOS_PAGE)
-        item.SetProperty('page', str(page+1))
-        items.append(item)
-
-        if page:
-            item = mc.ListItem(mc.ListItem.MEDIA_UNKNOWN)
-            item.SetLabel('Prev Page')
-            item.SetProperty('type', HD_VIDEOS_PAGE)
-            item.SetProperty('page', str(page-1))
-            items.append(item)
+        self._append_nav(items, page, HD_VIDEOS_PAGE)
 
         mc.GetActiveWindow().GetList(120).SetItems(items)
-#        return items
 
