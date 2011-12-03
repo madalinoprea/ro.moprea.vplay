@@ -5,14 +5,18 @@ Boxee app to browse easier video sharing site http://vplay.ro
 Current status: alpha (don't be fulled by version number)
 
 ## TODO
- - Add subtitles
  - Create script that builds package (zips everything excluding unwanted files)
  - Create and Publish repository: http://developer.boxee.tv/Custom_Repository
- - Add pagination for tv shows
  - Add navigation buttons for series and episodes (Back to TV Show, Back to Series)
- - Add login status
 
 ## Release Notes
+
+### Version 1.5
+ - Loads subtitles available on Vplay
+ - Adds logout option and possibility to reset saved login credentials
+ - Adds pagination for tv shows
+ - Adds login status
+
 ### Version 1.4
  - Search added for tv shows and common videos
  - Correct meta data added to player item
