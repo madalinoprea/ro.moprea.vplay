@@ -20,7 +20,7 @@
                 <align>right</align>
                 <font>font21b</font>
                 <color>white</color>
-                <label>Play Count:0[CR]Declined Count:0</label>
+                <label></label>
             </control>
             <control type="grouplist" id="200">
                 <posy>120</posy>
@@ -54,7 +54,7 @@
                     <focusedcolor>ffffffff</focusedcolor>
                     <texturefocus>ba_overlay.png</texturefocus>
                     <texturenofocus>ba_overlay2.png</texturenofocus>
-                    <onclick lang="python"><![CDATA[v.login()]]></onclick>
+                    <onclick lang="python"><![CDATA[v.toggle_login()]]></onclick>
                 </control>
                 <control type="button" id="203">
                     <width>150</width>

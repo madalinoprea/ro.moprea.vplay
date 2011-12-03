@@ -21,8 +21,14 @@ TV_EPISODE = 'TV_EPISODE'
 SEARCH_PAGE = 'SEARCH_NEXT_PAGE'
 HD_VIDEOS_PAGE = 'HD_VIDEOS_PAGE'
 
+# Control IDs
+LOGIN_BUTTON_ID = 202
+NAVIGATION_LIST_ID = 120
+STATUS_LABEL_ID = 110
+
 class Vplay(object):
     BASE_URL = 'http://vplay.ro'
+    MAX_FAILED_LOGIN_COUNT = 3
 
     def log(self, msg):
         mc.LogInfo('VPLAY: %s' % msg)
@@ -37,6 +43,8 @@ class Vplay(object):
         config = mc.GetApp().GetLocalConfig()
         self.username = config.GetValue('username')
         self.password = config.GetValue('password')
+        self.logged_in = False
+        self.failed_login_count = 0
 
     def get_username(self):
         if not self.username:
@@ -57,7 +65,11 @@ class Vplay(object):
     def get_login_url(self):
         return '%s/login/?rtr=' % self.get_base_url()
 
-    def login(self):
+    def _login(self):
+        # Erase saved credentials
+        if self.failed_login_count == self.MAX_FAILED_LOGIN_COUNT:
+            self._logout()
+
         username = self.get_username()
         password = self.get_password()
 
@@ -68,12 +80,47 @@ class Vplay(object):
             self.notify('Response: ' + responseCookie)
 
             if ('vplay_Q1j') in responseCookie:
+                self.logged_in = True
                 return True
             else:
+                self.failed_login_count = self.failed_login_count + 1
                 mc.ShowDialogNotification('Unable to obtain cookie')
                 self.log('Cookie missing')
 
         return False
+
+    '''
+    Reset user credentials from local config so that user can re-introduce them.
+    '''
+    def _logout(self):
+        # Reset saved credentials
+        config = mc.GetApp().GetLocalConfig()
+        config.SetValue('username', '')
+        config.SetValue('password', '')
+        self.username = ''
+        self.password = ''
+
+        # Reset http object (hopefully it will erase any saved cookies
+        self.http.Reset()
+        self.logged_in = False
+        self.failed_login_count = 0
+
+    def toggle_login(self):
+        if self.logged_in:
+            self._logout()
+        else:
+            self._login()
+
+        # update text
+        button_label = 'Login'
+        status_label = 'Logged out'
+        # login might fail, we check again
+        if self.logged_in:
+            button_label = 'Logout'
+            status_label = 'Logged as %s' % self.username
+
+        mc.GetActiveWindow().GetLabel(STATUS_LABEL_ID).SetLabel(status_label)
+        mc.GetActiveWindow().GetButton(LOGIN_BUTTON_ID).SetLabel(button_label)
 
 
     # Maybe add base url as setting
