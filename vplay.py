@@ -325,6 +325,8 @@ class Vplay(object):
                                                        self.convert_time(json_line['f']),
                                                        self.convert_time(json_line['t']),
                                                        json_line['s'])
+
+                    line = line.replace('<br>', ' ')
                     file.write(line.encode('utf-8'))
                     count = count + 1
                 file.close()
@@ -358,8 +360,6 @@ class Vplay(object):
                 continue
             option = val.split('=')
             attrs[option[0]] = option[1]
-
-        video_url = attrs['nqURL']
 
         # Find subtitle
         sub_file_path = self._load_subs(episode_id)
