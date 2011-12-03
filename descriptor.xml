@@ -5,7 +5,7 @@
   <version>1.5</version>
   <description>Videos from Vplay</description>
   <thumb>http://moprea.ro/repository/images/vplay-boxee-app.png</thumb>
-  <repository>http://192.168.1.110/~madalinoprea/repository/</repository>
+  <repository>http://moprea.ro/repository/</repository>
   <copyright>Magneto</copyright>
   <author>Madalin Oprea</author>
   <email>mario@moprea.ro</email>
