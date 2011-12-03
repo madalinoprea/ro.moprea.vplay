@@ -2,7 +2,7 @@
 <window type="window" id="14000">
     <defaultcontrol always="true">120</defaultcontrol>
     <allowoverlay>no</allowoverlay>
-    <onload lang="python"><![CDATA[v.notify('counter')]]></onload>
+    <onload lang="python"><![CDATA[v.notify('ready...')]]></onload>
     <controls>
         <control type="group">
             <animation type="WindowOpen">
@@ -31,7 +31,7 @@
                 <control type="button" id="201">
                     <width>150</width>
                     <height>40</height>
-                    <label>LOAD LIST</label>
+                    <label>TV SHOWS</label>
                     <font>font21b</font>
                     <align>center</align>
                     <textoffsety>7</textoffsety>
@@ -41,34 +41,6 @@
                     <texturefocus>ba_overlay.png</texturefocus>
                     <texturenofocus>ba_overlay2.png</texturenofocus>
                     <onclick lang="python"><![CDATA[v.load_tv_shows()]]></onclick>
-                </control>
-                <control type="button" id="202">
-                    <width>150</width>
-                    <height>40</height>
-                    <label>Log In</label>
-                    <font>font21b</font>
-                    <align>center</align>
-                    <textoffsety>7</textoffsety>
-                    <aligny>top</aligny>
-                    <textcolor>ffbdbdbd</textcolor>
-                    <focusedcolor>ffffffff</focusedcolor>
-                    <texturefocus>ba_overlay.png</texturefocus>
-                    <texturenofocus>ba_overlay2.png</texturenofocus>
-                    <onclick lang="python"><![CDATA[v.toggle_login()]]></onclick>
-                </control>
-                <control type="button" id="203">
-                    <width>150</width>
-                    <height>40</height>
-                    <label>CLEAR DUMMY</label>
-                    <font>font21b</font>
-                    <align>center</align>
-                    <textoffsety>7</textoffsety>
-                    <aligny>top</aligny>
-                    <textcolor>ffbdbdbd</textcolor>
-                    <focusedcolor>ffffffff</focusedcolor>
-                    <texturefocus>ba_overlay.png</texturefocus>
-                    <texturenofocus>ba_overlay2.png</texturenofocus>
-                    <onclick lang="python"><![CDATA[v.notify('clear list')]]></onclick>
                 </control>
                 <control type="button" id="204">
                     <width>200</width>
@@ -84,6 +56,20 @@
                     <texturenofocus>ba_overlay2.png</texturenofocus>
                     <onclick lang="python"><![CDATA[v.search_tv_shows()]]></onclick>
                 </control>
+                <control type="button" id="206">
+                    <width>200</width>
+                    <height>40</height>
+                    <label>HD</label>
+                    <font>font21b</font>
+                    <align>center</align>
+                    <textoffsety>7</textoffsety>
+                    <aligny>top</aligny>
+                    <textcolor>ffbdbdbd</textcolor>
+                    <focusedcolor>ffffffff</focusedcolor>
+                    <texturefocus>ba_overlay.png</texturefocus>
+                    <texturenofocus>ba_overlay2.png</texturenofocus>
+                    <onclick lang="python"><![CDATA[v.hd_videos()]]></onclick>
+                </control>
                 <control type="button" id="205">
                     <width>200</width>
                     <height>40</height>
@@ -98,10 +84,10 @@
                     <texturenofocus>ba_overlay2.png</texturenofocus>
                     <onclick lang="python"><![CDATA[v.search()]]></onclick>
                 </control>
-                <control type="button" id="206">
-                    <width>200</width>
+                <control type="button" id="202">
+                    <width>150</width>
                     <height>40</height>
-                    <label>HD</label>
+                    <label>Log In</label>
                     <font>font21b</font>
                     <align>center</align>
                     <textoffsety>7</textoffsety>
@@ -110,7 +96,7 @@
                     <focusedcolor>ffffffff</focusedcolor>
                     <texturefocus>ba_overlay.png</texturefocus>
                     <texturenofocus>ba_overlay2.png</texturenofocus>
-                    <onclick lang="python"><![CDATA[v.hd_videos()]]></onclick>
+                    <onclick lang="python"><![CDATA[v.toggle_login()]]></onclick>
                 </control>
             </control>
             <control type="group">
