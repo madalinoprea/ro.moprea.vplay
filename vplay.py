@@ -7,9 +7,9 @@ import simplejson as json
 
 import re
 import random
+from datetime import timedelta
 
-import codecs
-#import xbmc
+import xbmc
 
 # See http://developer.boxee.tv/MC_Module
 
@@ -239,7 +239,7 @@ class Vplay(object):
         return items
 
     '''
-    Returns a list of season for tv_show show
+    Returns a list of seasons for tv_show show
     '''
     def get_seasons(self, tv_show_item):
         url = '%s%s' % (self.get_base_url(), tv_show_item.GetPath())
@@ -298,35 +298,11 @@ class Vplay(object):
             items.append(item)
         return items
 
-    def convert_time_to_something(self, f):
-        f = int(f)
-        def min_and_sec(f):
-            if f > 60:
-                f_minute = f/60
-                f_secunde = f%60
-            else:
-                f_minute = "00"
-                f_secunde = f
-
-            if f_minute < 10:
-                f_minute = "0" + str(f_minute)
-            if f_secunde < 10:
-                f_secunde = "0" + str(f_secunde)
-            return str(f_minute) + ":" + str(f_secunde) + ",0"
-
-        if f > 3600:
-            hours = f / 3600
-            f = f % 3600
-            if hours < 10:
-                hours = "0" + str(hours)
-            else:
-                hours = str(hours)
-        else:
-            hours = "00"
-
-        final = hours + ":" + min_and_sec(f)
-
-        return final
+    '''
+    Converts Vplay subtitle time into sub format
+    '''
+    def convert_time(self, f):
+        return '%s,0' % str(timedelta(seconds=f))
 
     def _load_subs(self, episode_key, lang='RO'):
         subs_url = '%s/play/subs.do' % self.get_base_url()
@@ -339,25 +315,20 @@ class Vplay(object):
             try:
                 sub_data = sub_raw_data.strip('&subsData=').rstrip('\n')
                 sub_json = json.loads(sub_data)
-
-                self.log('Saving sub to %s' % file_path)
-                file = codecs.open(file_path, encoding='utf-8', mode='w+')
-                self.lof('File opened')
+                file = open(file_path, mode='w+')
 
                 count = 1
                 for json_line in sub_json:
-                    line = '%d\n %s --> %s\n%s\n\n' % (count,
-                                                       self.convert_time_to_something(json_line['f']),
-                                                       self.convert_time_to_something(json_line['t']),
+                    line = '%d\n%s --> %s\n%s\n\n' % (count,
+                                                       self.convert_time(json_line['f']),
+                                                       self.convert_time(json_line['t']),
                                                        json_line['s'])
-                    self.log('Line: %s' % line)
-                    file.write(line)
-                    self.log('Wrote in file')
+                    file.write(line.encode('utf-8'))
                     count = count + 1
                 file.close()
             except Exception, ex:
                 file_path = None
-                self.log('Error loading sub: %s' % ex)
+                self.log('Error saving sub: %s' % ex)
 
         return file_path
 
@@ -367,15 +338,12 @@ class Vplay(object):
         episode_url = '%s%s' % (self.get_base_url(), episode_path)
         data = self.http.Get(episode_url)
         self.log('URL: %s' % episode_url)
-#        self.log('Data: %s ' % data)
         match=re.compile('http://vplay.ro/watch/(.+?)/').findall(episode_url)
         episode_id = match[0]
 
         url = '%s/play/dinosaur.do?key=%s&rand=%s' % (self.get_base_url(), episode_id, random.random())
         data = self.http.Get(url)
         #&nqURL=http://sx.io/vpl/s3m/dqnh9k7p.vod:798eb45f9d6c23bd9f6f21b3eaa828e6:4ed2bcf8&subs=["RO","EN","BG","PL"]&th=http://i.vplay.ro/th/dq/dqnh9k7p/0.jpg
-
-        self.log('Data: %s' % data)
 
         if not len(data):
             self.notify('Unable to contact dino')
@@ -389,13 +357,11 @@ class Vplay(object):
             option = val.split('=')
             attrs[option[0]] = option[1]
 
-        self.log('Options: %s' % attrs)
-        
         video_url = attrs['nqURL']
-        self.log('Video: %s' % video_url)
 
         # Find subtitle
-#        sub_file_path = self._load_subs(episode_id)
+        sub_file_path = self._load_subs(episode_id)
+        self.log('Subtitle saved to %s' % sub_file_path)
 
         item = mc.ListItem()
         item.SetPath(attrs['nqURL'])
@@ -406,11 +372,11 @@ class Vplay(object):
         
         mc.GetPlayer().Play(item)
 
-#        if sub_file_path:
-#             xbmc.sleep(3000)
+        if sub_file_path:
+             xbmc.sleep(3000)
 #             while (self.GetLastPlayerEvent() != self.EVENT_STARTED):
 #                 xbmc.sleep(1000)
-#                 xbmc.Player().setSubtitles(sub_file_path)
+             xbmc.Player().setSubtitles(sub_file_path)
 
     '''
     Search tv shows
