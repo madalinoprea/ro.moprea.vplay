@@ -5,9 +5,15 @@ Boxee app to browse easier video sharing site http://vplay.ro
 Current status: alpha (don't be fulled by version number)
 
 ## TODO
- - Nothing yet
+ - Mark watched tv episodes
+ - Focus main menu when app is opened
+ - Improve session status detection
+ - Implement support for multiple subtitles associated to a tv episode (EN if available)
 
 ## Release Notes
+
+### Version 1.8
+ - A package that has required properties (app id, repository url) to be deployed on Boxee Apps
 
 ### Version 1.7
  - Add navigation buttons for series and episodes (Back to TV Show, Back to Series)
