@@ -175,6 +175,8 @@ class Vplay(object):
             self.notify('List updated.')
             mc.GetActiveWindow().GetList(NAVIGATION_LIST_ID).SetItems(items)
 
+        mc.GetActiveWindow().PushState()
+
 
     '''
     Inserts Next Page and Prev Page buttons
@@ -319,7 +321,7 @@ class Vplay(object):
 
                 count = 1
                 for json_line in sub_json:
-                    line = '%d\n%s --> %s\n%s\n\n' % (count,
+                    line = '%d \n%s --> %s\n%s\n\n' % (count,
                                                        self.convert_time(json_line['f']),
                                                        self.convert_time(json_line['t']),
                                                        json_line['s'])
@@ -369,7 +371,7 @@ class Vplay(object):
         item.SetTitle(episode_item.GetTitle())
         item.SetTVShowTitle(episode_item.GetTitle())
         item.SetThumbnail(episode_item.GetProperty('tv_show_thumb'))
-        
+
         mc.GetPlayer().Play(item)
 
         if sub_file_path:
