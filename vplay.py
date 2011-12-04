@@ -22,6 +22,8 @@ SEARCH_PAGE = 'SEARCH_NEXT_PAGE'
 HD_VIDEOS_PAGE = 'HD_VIDEOS_PAGE'
 
 # Control IDs
+TOP_MENU_LIST_ID = 200
+TV_SHOW_MENU_ITEM_ID = 201
 LOGIN_BUTTON_ID = 202           # Login/logout button
 NAVIGATION_LIST_ID = 120        # Navigation menu
 STATUS_LABEL_ID = 110           # Session status (logged in / logged out)
@@ -126,6 +128,9 @@ class Vplay(object):
     # Maybe add base url as setting
     def get_base_url(self):
         return self.BASE_URL
+
+    def on_load(self):
+        mc.GetActiveWindow().GetControl(TV_SHOW_MENU_ITEM_ID).SetFocus()
 
     def get_tv_shows_url(self, page=0, search=None):
         url = '%s/serials/?page=%s' % (self.BASE_URL, page)

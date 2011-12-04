@@ -2,7 +2,7 @@
 <window type="window" id="14000">
     <defaultcontrol always="true">120</defaultcontrol>
     <allowoverlay>no</allowoverlay>
-    <onload lang="python"><![CDATA[v.notify('ready...')]]></onload>
+    <onload lang="python"><![CDATA[v.on_load()]]></onload>
     <controls>
         <control type="group">
             <animation type="WindowOpen">
