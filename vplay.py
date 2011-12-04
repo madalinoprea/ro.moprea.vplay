@@ -77,17 +77,15 @@ class Vplay(object):
 
         if username and password:
             params = 'username=%s&pwd=%s&remember_me=%s&login=Conectare' % (username, password, 1)
-            self.http.Post(self.get_login_url(), params)
-            responseCookie = str(self.http.GetHttpHeader('Set-Cookie'))
-            self.notify('Response: ' + responseCookie)
+            response = self.http.Post(self.get_login_url(), params)
+            logged_username = self.get_username_from_page(response)
 
-            if ('vplay_Q1j') in responseCookie:
+            if logged_username:
                 self.logged_in = True
                 return True
             else:
                 self.failed_login_count = self.failed_login_count + 1
-                mc.ShowDialogNotification('Unable to obtain cookie')
-                self.log('Cookie missing')
+                mc.ShowDialogNotification('Unable to obtain log in.')
 
         return False
 
@@ -97,8 +95,8 @@ class Vplay(object):
     def _logout(self):
         # Reset saved credentials
         config = mc.GetApp().GetLocalConfig()
-        config.SetValue('username', '')
-        config.SetValue('password', '')
+        config.Reset('username')
+        config.Reset('password')
         self.username = ''
         self.password = ''
 
@@ -113,10 +111,15 @@ class Vplay(object):
         else:
             self._login()
 
-        # update text
+        # update UI
+        self.update_login_status()
+
+    '''
+    Updates UI based on self.logged_in
+    '''
+    def update_login_status(self):
         button_label = 'Login'
         status_label = 'Logged out'
-        # login might fail, we check again
         if self.logged_in:
             button_label = 'Logout'
             status_label = 'Logged as %s' % self.username
@@ -124,13 +127,24 @@ class Vplay(object):
         mc.GetActiveWindow().GetLabel(STATUS_LABEL_ID).SetLabel(status_label)
         mc.GetActiveWindow().GetButton(LOGIN_BUTTON_ID).SetLabel(button_label)
 
-
     # Maybe add base url as setting
     def get_base_url(self):
         return self.BASE_URL
 
+    '''
+    Executed at window load, used to update UI elements (set focus, etc)
+    '''
     def on_load(self):
-        mc.GetActiveWindow().GetControl(TV_SHOW_MENU_ITEM_ID).SetFocus()
+        #mc.GetActiveWindow().GetControl(TV_SHOW_MENU_ITEM_ID).SetFocus()
+
+        # Update login status, we might already have cookies from previous run
+        response = self.http.Get(self.get_base_url())
+        username = self.get_username_from_page(response)
+        if username:
+            self.logged_in = True
+            self.update_login_status()
+            self.notify('Already authenticated as %s' % username)
+
 
     def get_tv_shows_url(self, page=0, search=None):
         url = '%s/serials/?page=%s' % (self.BASE_URL, page)
@@ -139,21 +153,23 @@ class Vplay(object):
             url = '%s&s=%s' % (url, search)
         return url
 
-
-    def test(self):
-        mc.ShowDialogNotification('TEST video..')
-
     def load_tv_shows(self):
         # clear nav list
         items = self.get_tv_shows()
         mc.GetActiveWindow().GetList(NAVIGATION_LIST_ID).SetItems(items)
         mc.GetActiveWindow().PushState()
 
+    '''
+    App main controller - handles nav list's clicks
+    '''
     def load_next(self):
+        # save current window state
+        mc.GetActiveWindow().PushState()
+
         list = mc.GetActiveWindow().GetList(NAVIGATION_LIST_ID)
         item = list.GetItem(list.GetFocusedItem())
         items = None # items to populate list
-        
+
         if item:
             item_type = item.GetProperty('type')
             if item_type == TV_SHOW:
@@ -180,8 +196,6 @@ class Vplay(object):
         if items:
             self.notify('List updated.')
             mc.GetActiveWindow().GetList(NAVIGATION_LIST_ID).SetItems(items)
-
-        mc.GetActiveWindow().PushState()
 
 
     '''
@@ -428,27 +442,51 @@ class Vplay(object):
         page = int(page)
         url = '%s/hd_music/?page=%d' % (self.get_base_url(), page)
         data = self.http.Get(url)
-        matches = re.compile('<a href="(/watch/.*?/)" class="vbox-th"><img src="(.*?)" width="168" height="96" alt="(.*?)"').findall(data)
+        r = re.compile('<a href="(?P<url>/watch/.*?/)" class="vbox-th"><img src="(?P<img>.*?)" width="168" height="96" alt="(?P<title>.*?)"')
+        matches = r.finditer(data)
 
-        self.log('HD Videos: %s' % matches)
         items = mc.ListItems()
-
-        # match[0] = path, match[1] = img url , match[2] = title
         for video in matches:
+            self.log('%s' % video.groupdict())
+            title = video.group('title')
+            img = video.group('img')
+            url = video.group('url')
+
             item = mc.ListItem(mc.ListItem.MEDIA_UNKNOWN)
-            item.SetLabel(video[2])
-            item.SetPath(video[0])
-            item.SetTitle(video[2])
-            item.SetTVShowTitle(video[2])
-            item.SetThumbnail(video[1])
+            item.SetLabel(title)
+            item.SetPath(url)
+            item.SetTitle(title)
+            item.SetTVShowTitle(title)
+            item.SetThumbnail(img)
             item.SetProperty('type', TV_EPISODE)
             item.SetProperty('tv_show', 'Videos')
             item.SetProperty('tv_season', '')
-            item.SetProperty('tv_show_thumb', video[1])
+            item.SetProperty('tv_show_thumb', img)
             items.append(item)
 
         # Add nav buttons
         self._append_nav(items, page, HD_VIDEOS_PAGE)
 
         mc.GetActiveWindow().GetList(NAVIGATION_LIST_ID).SetItems(items)
+
+    '''
+    Returns username of current session or None if session is not authenticated
+    '''
+    def get_username_from_page(self, url_response):
+        r = re.compile('<a href="/(?P<profile_url>.*?)" class="username">(?P<username>.*)</a>')
+        u = r.search(url_response)
+
+        return u.group('username')
+
+    def test_regexp(self):
+        # Test HD Videos
+        self.log('Test HD Video matching...')
+        url = 'http://vplay.ro/hd_music/'
+        url_data = mc.http.Get(url)
+        r = re.compile('<a href="(?P<url>/watch/.*?/)" class="vbox-th"><img src="(?P<img>.*?)" width="168" height="96" alt="(?P<title>.*?)"')
+        for item in r.finditer(url_data):
+            print '%s' % item.groupdict()
+
+        # Test TV shows
+
 
