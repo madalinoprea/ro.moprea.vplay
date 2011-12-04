@@ -6,11 +6,13 @@ Current status: alpha (don't be fulled by version number)
 
 ## TODO
  - Mark watched tv episodes
- - Focus main menu when app is opened
- - Improve session status detection
  - Implement support for multiple subtitles associated to a tv episode (EN if available)
 
 ## Release Notes
+
+### Version 1.9
+ - Focus main menu when app is opened
+ - Improve session status detection
 
 ### Version 1.8
  - A package that has required properties (app id, repository url) to be deployed on Boxee Apps
