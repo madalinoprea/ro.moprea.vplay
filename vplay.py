@@ -47,6 +47,7 @@ class Vplay(object):
         self.password = config.GetValue('password')
         self.logged_in = False
         self.failed_login_count = 0
+        self.last_played_episode = 0
 
     def get_username(self):
         if not self.username:
@@ -145,6 +146,10 @@ class Vplay(object):
             self.update_login_status()
             self.notify('Already authenticated as %s' % username)
 
+        # Coming back from player, select latest episode played
+        list = mc.GetActiveWindow().GetList(NAVIGATION_LIST_ID)
+        list.SetFocusedItem(self.last_played_episode)
+
 
     def get_tv_shows_url(self, page=0, search=None):
         url = '%s/serials/?page=%s' % (self.BASE_URL, page)
@@ -181,6 +186,7 @@ class Vplay(object):
                 # must load season's episodes
                 items = self.get_episodes(item)
             elif item_type == TV_EPISODE:
+                self.last_played_episode = list.GetFocusedItem()
                 self.play_episode(item)
             elif item_type == SEARCH_PAGE:
                 query = item.GetProperty('query')
@@ -195,6 +201,7 @@ class Vplay(object):
 
         if items:
             self.notify('List updated.')
+            self.last_played_episode = 0
             mc.GetActiveWindow().GetList(NAVIGATION_LIST_ID).SetItems(items)
 
 
@@ -357,6 +364,9 @@ class Vplay(object):
         return file_path
 
     def play_episode(self, episode_item):
+        list = mc.GetActiveWindow().GetList(NAVIGATION_LIST_ID)
+
+
         episode_path = episode_item.GetPath()
 
         episode_url = '%s%s' % (self.get_base_url(), episode_path)
@@ -383,9 +393,14 @@ class Vplay(object):
 
         # Find subtitle
         sub_file_path = self._load_subs(episode_id)
-        self.log('Subtitle saved to %s' % sub_file_path)
 
-        item = mc.ListItem()
+        list_item_type = mc.ListItem.MEDIA_VIDEO_CLIP
+
+        # Is this an episode
+        if episode_item.GetProperty('tv_season'):
+            list_item_type = mc.ListItem.MEDIA_VIDEO_EPISODE
+
+        item = mc.ListItem(list_item_type)
         item.SetPath(attrs['nqURL'])
         item.SetIcon(attrs['th'])
         item.SetTitle(episode_item.GetTitle())
