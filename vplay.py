@@ -146,7 +146,9 @@ class Vplay(object):
             self.logged_in = True
             self.update_login_status()
             self.notify('Already authenticated as %s' % username)
-        else:
+
+        # Enforce login
+        if not self.logged_in:
             self._login()
 
         # Coming back from player, select latest episode played
