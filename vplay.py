@@ -290,8 +290,6 @@ class Vplay(object):
 #        for match in description_r.finditer(data):
 #            description = match.group('description')
 
-        self.log('Description: %s' % description)
-
         items = mc.ListItems()
         for match in r.finditer(data):
             season = match.groupdict()
@@ -318,7 +316,6 @@ class Vplay(object):
     '''
     def get_episodes(self, season_item):
         url = '%s%s' % (self.get_base_url(), season_item.GetPath())
-        self.log('Loading url: %s' % url)
         data = self.http.Get(url)
 
         pattern = '''<a href="(?P<path>\S+)" title="(?P<full_title>.*)" class="coll-episode-box">
@@ -384,13 +381,11 @@ class Vplay(object):
     def play_episode(self, episode_item):
         episode_path = episode_item.GetPath()
         episode_url = '%s%s' % (self.get_base_url(), episode_path)
-#        data = self.http.Get(episode_url)
         match=re.compile('http://vplay.ro/watch/(.+?)/').findall(episode_url)
         episode_id = match[0]
         url = '%s/play/dinosaur.do' % self.get_base_url()
         params = 'key=%s' % episode_id
         data = self.http.Post(url, params)
-        self.log('Data: %s' % data)
 
         if not len(data):
             self.notify('Unable to contact dino. Please check your login status.')
@@ -471,9 +466,7 @@ class Vplay(object):
     def hd_videos(self, page='1'):
         page = int(page)
         url = '%s/cat/all/%d' % (self.get_base_url(), page)
-        self.log('Videos URL: %s' % url)
         data = self.http.Get(url)
-#        pattern = '<a href="(?P<path>\S+)" class="article" data="(?P<shit>\S+)"><span class="thumbnail"><b>(?P<time>[0-9:]+)</b><img src="(?P<image>\S+)" alt="(?P<title>.*)"></span>'
         pattern = '<a href="(?P<path>\S+)" class="article" data="(?P<shit>\S+)"><span class="thumbnail"><b>(?P<duration>[0-9:]+)</b><img src="(?P<image>[^"]+)" alt="(?P<title>[^"]+)">'
 
         r = re.compile(pattern)
@@ -482,21 +475,17 @@ class Vplay(object):
         items = mc.ListItems()
         for match in matches:
             video = match.groupdict()
-            self.log('Video data: %s' % video)
-            title = video['title']
-            img = video['image']
-            url = video['path']
 
             item = mc.ListItem(mc.ListItem.MEDIA_UNKNOWN)
-            item.SetLabel('%s (%s)' % (title, video['duration']))
-            item.SetPath(url)
-            item.SetTitle(title)
-            item.SetTVShowTitle(title)
-            item.SetThumbnail(img)
+            item.SetLabel('%s (%s)' % (video['title'], video['duration']))
+            item.SetPath(video['path'])
+            item.SetTitle(video['title'])
+            item.SetTVShowTitle(video['title'])
+            item.SetThumbnail(video['image'])
             item.SetProperty('type', TV_EPISODE)
             item.SetProperty('tv_show', 'Videos')
             item.SetProperty('tv_season', '')
-            item.SetProperty('tv_show_thumb', img)
+            item.SetProperty('tv_show_thumb', video['image'])
             items.append(item)
 
         # Add nav buttons
