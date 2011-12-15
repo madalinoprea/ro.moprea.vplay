@@ -243,8 +243,7 @@ class Vplay(object):
         page = int(page)
 
         founded = []
-#        pattern = '<a href="/c/(?P<path>[a-zA-Z0-9]+)/" title="(?P<title>[a-zA-Z0-9 ]+)">.*<span .*style="background-image:url\((?P<image>.*)\);"></span>'
-        pattern = '<a href="(?P<path>\S+)" title="(?P<title>[a-zA-Z0-9 ]+)"><span class="coll_poster" title="([a-zA-Z0-9 ]+)" style="background-image:url\((?P<image>\S+)\);">'
+        pattern = '<a href="(?P<path>\S+)" title="(?P<title>[^"]+)"><span class="coll_poster" title="([^"]+)" style="background-image:url\((?P<image>\S+)\);">'
 
         r = re.compile(pattern)
         matches = r.finditer(data)
