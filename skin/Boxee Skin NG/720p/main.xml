@@ -8,10 +8,11 @@
             <animation type="WindowOpen">
                 <effect type="fade" start="0" end="100" time="200"/>
             </animation>
-            <control type="image">
+            <control type="largeimage">
                 <width>1280</width>
                 <height>720</height>
                 <texture>ba_background.png</texture>
+                <aspectratio>keep</aspectratio>
             </control>
             <control type="label" id="110">
                 <posy>50</posy>
