@@ -229,7 +229,7 @@ class Vplay(object):
         item.SetProperty('query', query)
         items.append(item)
 
-        if page>1:
+        if page > 1:
             item = mc.ListItem(mc.ListItem.MEDIA_UNKNOWN)
             item.SetLabel('Prev Page')
             item.SetProperty('type', nav_type)
@@ -250,11 +250,7 @@ class Vplay(object):
         r = re.compile(pattern)
         matches = r.finditer(data)
         for m in matches:
-            self.log('Match: %s' % m.groupdict())
             founded.append(m.groupdict())
-
-        #match = re.compile('<a href="(/serials/browse.do\?sid=[0-9]+)" target="_top"  class="group-item"(.+?)title="Seriale Online: (.+?)"><img src="(.+?)" width="312" height="103">(.+?)</a>').findall(data)
-        #founded = founded + match
 
         items = mc.ListItems()
 
@@ -287,6 +283,15 @@ class Vplay(object):
         pattern = '<a class="(\S?)" href="(?P<path>\S+)"><span class="(\S+)><span class="content"><span class="text">(?P<title>[a-zA-Z0-9 ]+)</span>'
         r = re.compile(pattern)
 
+        # retrieve tv show description
+        description = ''
+#        pattern = '''<p>(?P<description>[^<]+)</p>'''
+#        description_r = re.compile(pattern)
+#        for match in description_r.finditer(data):
+#            description = match.group('description')
+
+        self.log('Description: %s' % description)
+
         items = mc.ListItems()
         for match in r.finditer(data):
             season = match.groupdict()
@@ -303,6 +308,7 @@ class Vplay(object):
             item.SetProperty('tv_show', tv_show_item.GetProperty('tv_show'))
             item.SetProperty('tv_season', season['title'])
             item.SetProperty('tv_show_thumb', tv_show_item.GetThumbnail())
+            item.SetProperty('description', description)
 
             items.append(item)
         return items
@@ -349,7 +355,6 @@ class Vplay(object):
     def _load_subs(self, episode_key, lang='RO'):
         subs_url = '%s/play/subs.do' % self.get_base_url()
         params = 'key=%s&lang=%s' % (episode_key, lang)
-        self.log('SUBS URL: %s' % subs_url)
         sub_raw_data = self.http.Post(subs_url, params)
         file_path = mc.GetTempDir() + episode_key + '.sub'
 
@@ -377,28 +382,18 @@ class Vplay(object):
         return file_path
 
     def play_episode(self, episode_item):
-        list = mc.GetActiveWindow().GetList(NAVIGATION_LIST_ID)
-
-
         episode_path = episode_item.GetPath()
-
         episode_url = '%s%s' % (self.get_base_url(), episode_path)
-        data = self.http.Get(episode_url)
-        self.log('URL: %s' % episode_url)
+#        data = self.http.Get(episode_url)
         match=re.compile('http://vplay.ro/watch/(.+?)/').findall(episode_url)
         episode_id = match[0]
-        self.log('episode id: %s' % episode_id)
-
         url = '%s/play/dinosaur.do' % self.get_base_url()
         params = 'key=%s' % episode_id
-        self.log('Dino URL: %s' % url)
-        self.log('Params: %s' % params)
         data = self.http.Post(url, params)
         self.log('Data: %s' % data)
-        #&nqURL=http://sx.io/vpl/s3m/dqnh9k7p.vod:798eb45f9d6c23bd9f6f21b3eaa828e6:4ed2bcf8&subs=["RO","EN","BG","PL"]&th=http://i.vplay.ro/th/dq/dqnh9k7p/0.jpg
 
         if not len(data):
-            self.notify('Unable to contact dino. Please check if your login status.')
+            self.notify('Unable to contact dino. Please check your login status.')
 
         # Parse received data
         vals = data.split('&')
@@ -409,10 +404,8 @@ class Vplay(object):
             option = val.split('=')
             attrs[option[0]] = option[1]
 
-        self.log('Attributes: %s' % attrs)
         # Find subtitle
         sub_file_path = self._load_subs(episode_id)
-        self.log('Subtitle: %s' % sub_file_path)
 
         list_item_type = mc.ListItem.MEDIA_VIDEO_CLIP
 
@@ -519,16 +512,4 @@ class Vplay(object):
         u = r.search(url_response)
 
         return u.group('username')
-
-    def test_regexp(self):
-        # Test HD Videos
-        self.log('Test HD Video matching...')
-        url = 'http://vplay.ro/hd_music/'
-        url_data = mc.http.Get(url)
-        r = re.compile('<a href="(?P<url>/watch/.*?/)" class="vbox-th"><img src="(?P<img>.*?)" width="168" height="96" alt="(?P<title>.*?)"')
-        for item in r.finditer(url_data):
-            print '%s' % item.groupdict()
-
-        # Test TV shows
-
 
