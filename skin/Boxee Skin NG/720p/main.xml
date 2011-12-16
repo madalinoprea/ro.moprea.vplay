@@ -1,7 +1,9 @@
 <?xml version="1.0"?>
 <window type="window" id="14000">
     <defaultcontrol always="true">120</defaultcontrol>
-    <allowoverlay>no</allowoverlay>
+    <allowoverlay>yes</allowoverlay>
+    <animation effect="fade" time="200">WindowOpen</animation>
+    <animation effect="slide" end="0,576" time="100">WindowClose</animation>
     <onload lang="python"><![CDATA[v.on_load()]]></onload>
     <controls>
         <control type="group">
@@ -9,6 +11,8 @@
                 <effect type="fade" start="0" end="100" time="200"/>
             </animation>
             <control type="largeimage">
+                <posx>0</posx>
+                <posy>0</posy>
                 <width>1280</width>
                 <height>720</height>
                 <texture>ba_background.png</texture>
@@ -118,15 +122,18 @@
                     <height>3</height>
                     <texture>black.png</texture>
                 </control>
+                <!-- tv show 312x103, episode 300x160 -->
                 <control type="image">
-                    <posy>20</posy>
-                    <posx>410</posx>
-                    <width>500</width>
-                    <height>165</height>
+                    <posy>5</posy>
+                    <posx>600</posx>
+                    <width>312</width>
+                    <height>160</height>
+                    <aspectratio>keep</aspectratio>
                     <info>Container(120).Listitem.thumb</info>
+                    <fadetime>500</fadetime>
                 </control>
                 <control type="label">
-                    <posy>230</posy>
+                    <posy>400</posy>
                     <posx>410</posx>
                     <align>right</align>
                     <width>500</width>

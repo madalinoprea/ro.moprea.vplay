@@ -300,6 +300,7 @@ class Vplay(object):
             item.SetTitle(season['title'])
             item.SetTVShowTitle(tv_show_item.GetTVShowTitle())
             item.SetThumbnail(tv_show_item.GetThumbnail())
+            item.SetDescription(description)
 
             # Set custom
             item.SetProperty('type', TV_SEASON)
@@ -339,6 +340,7 @@ class Vplay(object):
             item.SetProperty('type', TV_EPISODE)
             item.SetProperty('tv_show', season_item.GetProperty('tv_show'))
             item.SetProperty('tv_season', season_item.GetProperty('tv_season'))
+            item.SetProperty('tv_show_image', season_item.GetProperty('tv_show_thumb'))
 
             items.append(item)
         return items
