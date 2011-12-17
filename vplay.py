@@ -29,7 +29,7 @@ NAVIGATION_LIST_ID = 120        # Navigation menu
 STATUS_LABEL_ID = 110           # Session status (logged in / logged out)
 TV_SHOW_IMAGE_ID = 150
 
-class Vplay(object):
+class Vplay(mc.Player):
     BASE_URL = 'http://vplay.ro'
     MAX_FAILED_LOGIN_COUNT = 3
 
@@ -41,6 +41,8 @@ class Vplay(object):
         mc.ShowDialogNotification(msg)
 
     def __init__(self):
+        mc.Player.__init__(self, True)
+
         self.http = mc.Http()
 
         config = mc.GetApp().GetLocalConfig()
@@ -50,6 +52,7 @@ class Vplay(object):
         self.failed_login_count = 0
         self.last_played_episode = 0
         self.populate_tv_shows = True
+
         try:
             platform_func = getattr(mc, 'GetPlatform')
             self.platform = platform_func()
@@ -147,8 +150,6 @@ class Vplay(object):
     Executed at window load, used to update UI elements (set focus, etc)
     '''
     def on_load(self):
-        #mc.GetActiveWindow().GetControl(TV_SHOW_MENU_ITEM_ID).SetFocus()
-
         # Update login status, we might already have cookies from previous run
         response = self.http.Get(self.get_base_url())
         username = self.get_username_from_page(response)
@@ -161,14 +162,27 @@ class Vplay(object):
         if not self.logged_in:
             self._login()
 
-        # Coming back from player, select latest episode played
+        # Coming back from player
         list = mc.GetActiveWindow().GetList(NAVIGATION_LIST_ID)
         items = list.GetItems()
-        if len(items):
-            list.SetFocusedItem(self.last_played_episode)
-        elif self.populate_tv_shows:
+
+        # Load the initial list
+        if len(items) == 0 and self.populate_tv_shows:
+            self.populate_tv_shows = False
             self.load_tv_shows()
 
+        # Play the next episode
+        if self.GetLastPlayerEvent() == self.EVENT_ENDED:
+            # do we have a next episode
+            if self.last_played_episode + 1 < len(items):
+                list.SetFocusedItem(self.last_played_episode + 1)
+                self.load_next()
+            else:
+                # only focus last played episode
+                list.SetFocusedItem(self.last_played_episode)
+        else:
+            # Maybe player is in background or user stopped the player
+            list.SetFocusedItem(self.last_played_episode)
 
     def get_tv_shows_url(self, page=1, search=None):
         url = '%s/coll/%s?' % (self.BASE_URL, page)
@@ -219,7 +233,6 @@ class Vplay(object):
             items = self.get_tv_shows()
 
         if items:
-            self.notify('List updated.')
             self.last_played_episode = 0
             mc.GetActiveWindow().GetList(NAVIGATION_LIST_ID).SetItems(items)
 
@@ -343,6 +356,7 @@ class Vplay(object):
             item.SetLabel('%s %s' % (episode['title'], watched))
             item.SetPath(episode['path'])
             item.SetTitle(episode['title'])
+            item.SetTVShowTitle(season_item.GetProperty('tv_show'))
             item.SetThumbnail(episode['image'])
 
             # custom properties
@@ -444,10 +458,11 @@ class Vplay(object):
         item.SetPath(attrs['nqURL'])
         item.SetIcon(attrs['th'])
         item.SetTitle(episode_item.GetTitle())
-        item.SetTVShowTitle(episode_item.GetTitle())
+        item.SetTVShowTitle('%s / %s' % (episode_item.GetTVShowTitle(), episode_item.GetProperty('tv_season')))
         item.SetThumbnail(episode_item.GetProperty('tv_show_thumb'))
+        item.SetReportToServer(False)
 
-        mc.GetPlayer().Play(item)
+        self.Play(item)
 
         if sub_file_path:
              xbmc.sleep(2000)
