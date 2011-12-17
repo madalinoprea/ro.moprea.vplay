@@ -280,7 +280,7 @@ class Vplay(object):
     def get_seasons(self, tv_show_item):
         url = '%s%s' % (self.get_base_url(), tv_show_item.GetPath())
         data = self.http.Get(url)
-        pattern = '<a class="(\S?)" href="(?P<path>\S+)"><span class="(\S+)><span class="content"><span class="text">(?P<title>[a-zA-Z0-9 ]+)</span>'
+        pattern = '<a class="([^"]*)" href="(?P<path>\S+)"><span>(?P<title>[a-zA-Z0-9 ]+)</span>'
         r = re.compile(pattern)
 
         # retrieve tv show description
