@@ -5,9 +5,16 @@ Boxee app to browse easier video sharing site http://vplay.ro
 Current status: alpha (don't be fulled by version number)
 
 ## TODO
- - Implement support for multiple subtitles associated to a tv episode (EN if available)
+ - None
 
 ## Release Notes
+
+### Version 2.4 (not released)
+ - Implement support for multiple subtitles associated to a tv episode (EN, BG, etc)
+ - Automatically play next episode
+ - Shows video window thumbnail when player is in background; Allows to return into fullscreen mode
+ - Shows tv show description in season list
+ - Fixes how tv episode watch status is identified (Html markup was changed)
 
 ### Version 2.3
  - Fixes markup for seasons
