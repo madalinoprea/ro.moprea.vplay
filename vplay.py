@@ -410,18 +410,28 @@ class Vplay(object):
             option = val.split('=')
             attrs[option[0]] = option[1]
 
-        # Find subtitle
+        # Find subtitles
+        sub_file_path = None
+        selected_lang = None
         available_languages = []
-        for lang in json.loads(attrs['subs']):
-            available_languages.append(str(lang))
+        if 'subs' in attrs:
+            for lang in json.loads(attrs['subs']):
+                available_languages.append(str(lang))
 
-        # TODO: Test this on BoxeeBox (ShowDialogSelect works only for 1.0)
-        if self.is_boxeebox():
-            selection = mc.ShowDialogSelect("Please choose subtitle", ["RO", "EN", "BG", "PL"])
-            selected_lang = str(available_languages[selection])
+#        self.log('Available languages: %s' % available_languages)
+        # Shows select dialog if multiple subtitles are available
+        if len(available_languages) > 1:
+            # TODO: Test this on BoxeeBox (ShowDialogSelect works only for 1.0)
+            if self.is_boxeebox():
+                selection = mc.ShowDialogSelect("Please choose subtitle", available_languages)
+                selected_lang = str(available_languages[selection])
+            else:
+                selected_lang = available_languages[0]
         else:
-            selected_lang = 'RO'
-        sub_file_path = self._load_subs(episode_id, selected_lang)
+            if len(available_languages) == 1:
+                selected_lang = available_languages[0]
+        if selected_lang:
+            sub_file_path = self._load_subs(episode_id, selected_lang)
 
         # Create Player Item
         list_item_type = mc.ListItem.MEDIA_VIDEO_CLIP
