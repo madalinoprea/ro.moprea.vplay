@@ -30,6 +30,7 @@
             <control type="grouplist" id="200">
                 <posy>120</posy>
                 <posx>30</posx>
+                <onup>7001</onup> <!-- Go to fullscreen toggle -->
                 <ondown>120</ondown>
                 <itemgap>3</itemgap>
                 <orientation>horizontal</orientation>
@@ -211,6 +212,32 @@
                 <font>font21</font>
                 <color>white</color>
                 <label>Vplay App</label>
+            </control>
+        </control>
+        <control type="group">
+            <posx>15</posx>
+            <posy>15</posy>
+            <control type="button" id="7001">
+                <ondown>100</ondown>
+                <width>182</width>
+                <height>108</height>
+                <texturenofocus>181818.png</texturenofocus>
+                <texturefocus>green.png</texturefocus>
+                <visible>Player.HasVideo</visible>
+                <onclick>SetFocus(100)</onclick>
+                <onclick>ActivateWindow(FullscreenVideo)</onclick>
+                <ondown>SetFocus(100)</ondown>
+                <onup>-</onup>
+                <onleft>-</onleft>
+                <onright>-</onright>
+            </control>
+            <control type="videowindow">
+                <visible>Player.HasVideo</visible>
+                <posx>5</posx>
+                <posy>5</posy>
+                <width>172</width>
+                <height>98</height>
+                <aspectratio>keep</aspectratio>
             </control>
         </control>
     </controls>
