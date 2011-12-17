@@ -100,7 +100,9 @@ class Vplay(mc.Player):
                 return True
             else:
                 self.failed_login_count = self.failed_login_count + 1
-                mc.ShowDialogNotification('Unable to obtain log in.')
+                mc.ShowDialogNotification('Unable to log in.')
+                self.logged_in = False
+        self.update_login_status()
 
         return False
 
@@ -119,15 +121,13 @@ class Vplay(mc.Player):
         self.http.Reset()
         self.logged_in = False
         self.failed_login_count = 0
+        self.update_login_status()
 
     def toggle_login(self):
         if self.logged_in:
             self._logout()
         else:
             self._login()
-
-        # update UI
-        self.update_login_status()
 
     '''
     Updates UI based on self.logged_in
@@ -432,7 +432,7 @@ class Vplay(mc.Player):
             for lang in json.loads(attrs['subs']):
                 available_languages.append(str(lang))
 
-#        self.log('Available languages: %s' % available_languages)
+        self.log('Available languages: %s' % available_languages)
         # Shows select dialog if multiple subtitles are available
         if len(available_languages) > 1:
             # TODO: Test this on BoxeeBox (ShowDialogSelect works only for 1.0)
@@ -465,7 +465,7 @@ class Vplay(mc.Player):
         self.Play(item)
 
         if sub_file_path:
-             xbmc.sleep(2000)
+             xbmc.sleep(8000)
 #             while player.GetLastPlayerAction() != player.EVENT_STARTED:
 #                 xbmc.sleep(1000)
              # Hints: http://xbmc.sourceforge.net/python-docs/xbmc.html
@@ -545,8 +545,10 @@ class Vplay(mc.Player):
     Returns username of current session or None if session is not authenticated
     '''
     def get_username_from_page(self, url_response):
-        r = re.compile('<a href="/(?P<profile_url>.*?)">Hi, (?P<username>.*)</a>')
+        r = re.compile('<a href="/(?P<profile_url>[^"]+)">Hi, (?P<username>.*)</a>')
         u = r.search(url_response)
-
-        return u.group('username')
+        if u:
+            return u.group('username')
+        else:
+            return None
 
