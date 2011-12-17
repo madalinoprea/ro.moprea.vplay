@@ -50,6 +50,15 @@ class Vplay(object):
         self.failed_login_count = 0
         self.last_played_episode = 0
         self.populate_tv_shows = True
+        try:
+            platform_func = getattr(mc, 'GetPlatform')
+            self.platform = platform_func()
+        except AttributeError:
+            self.platform = 'None'
+
+    # FIXME: See what returns mc.GetPlatform()
+    def is_boxeebox(self):
+        return self.platform != 'None'
 
     def get_username(self):
         if not self.username:
@@ -355,7 +364,7 @@ class Vplay(object):
         subs_url = '%s/play/subs.do' % self.get_base_url()
         params = 'key=%s&lang=%s' % (episode_key, lang)
         sub_raw_data = self.http.Post(subs_url, params)
-        file_path = mc.GetTempDir() + episode_key + '.sub'
+        file_path = mc.GetTempDir() + lang + '_' + episode_key + '.sub'
 
         if sub_raw_data:
             try:
@@ -402,8 +411,19 @@ class Vplay(object):
             attrs[option[0]] = option[1]
 
         # Find subtitle
-        sub_file_path = self._load_subs(episode_id)
+        available_languages = []
+        for lang in json.loads(attrs['subs']):
+            available_languages.append(str(lang))
 
+        # TODO: Test this on BoxeeBox (ShowDialogSelect works only for 1.0)
+        if self.is_boxeebox():
+            selection = mc.ShowDialogSelect("Please choose subtitle", ["RO", "EN", "BG", "PL"])
+            selected_lang = str(available_languages[selection])
+        else:
+            selected_lang = 'RO'
+        sub_file_path = self._load_subs(episode_id, selected_lang)
+
+        # Create Player Item
         list_item_type = mc.ListItem.MEDIA_VIDEO_CLIP
 
         # Is this an episode
@@ -420,9 +440,10 @@ class Vplay(object):
         mc.GetPlayer().Play(item)
 
         if sub_file_path:
-             xbmc.sleep(3000)
-#             while (self.GetLastPlayerEvent() != self.EVENT_STARTED):
+             xbmc.sleep(2000)
+#             while player.GetLastPlayerAction() != player.EVENT_STARTED:
 #                 xbmc.sleep(1000)
+             # Hints: http://xbmc.sourceforge.net/python-docs/xbmc.html
              xbmc.Player().setSubtitles(sub_file_path)
 
     '''
