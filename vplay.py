@@ -60,8 +60,10 @@ class Vplay(mc.Player):
             self.platform = 'None'
 
     # FIXME: See what returns mc.GetPlatform()
+    # TODO: Update this when I'll recover my boxee box
     def is_boxeebox(self):
-        return self.platform != 'None'
+        return False
+#        return self.platform != 'None'
 
     def get_username(self):
         if not self.username:
@@ -201,9 +203,6 @@ class Vplay(mc.Player):
     App main controller - handles nav list's clicks
     '''
     def load_next(self):
-        # save current window state
-        mc.GetActiveWindow().PushState()
-
         list = mc.GetActiveWindow().GetList(NAVIGATION_LIST_ID)
         item = list.GetItem(list.GetFocusedItem())
         items = None # items to populate list
@@ -233,6 +232,9 @@ class Vplay(mc.Player):
             items = self.get_tv_shows()
 
         if items:
+            # save current window state
+            mc.GetActiveWindow().PushState()
+
             self.last_played_episode = 0
             mc.GetActiveWindow().GetList(NAVIGATION_LIST_ID).SetItems(items)
 

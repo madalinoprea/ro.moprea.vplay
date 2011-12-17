@@ -3,7 +3,7 @@
   <id>ro.moprea.vplay</id>
   <!--<id>tv.boxee.vplay</id>-->
   <name>VPlay</name>
-  <version>2.3</version>
+  <version>2.4</version>
   <description>Videos from Vplay</description>
   <thumb>http://moprea.ro/repository/images/vplay-boxee-app.png</thumb>
   <repository>http://moprea.ro/repository/</repository>
