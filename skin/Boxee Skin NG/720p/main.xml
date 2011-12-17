@@ -123,23 +123,34 @@
                     <texture>black.png</texture>
                 </control>
                 <!-- tv show 312x103, episode 300x160 -->
+                <!--<control type="image" id="150">-->
+                    <!--<posy>0</posy>-->
+                    <!--<posx>400</posx>-->
+                    <!--<width>312</width>-->
+                    <!--<height>103</height>-->
+                    <!--<aspectratio>keep</aspectratio>-->
+                    <!--<info>Container(120).ListItem.property(custom:tv_show_thumb)</info>-->
+                    <!--<fadetime>500</fadetime>-->
+                <!--</control>-->
                 <control type="image">
-                    <posy>5</posy>
-                    <posx>600</posx>
+                    <posy>0</posy>
+                    <posx>400</posx>
                     <width>312</width>
                     <height>160</height>
                     <aspectratio>keep</aspectratio>
-                    <info>Container(120).Listitem.thumb</info>
+                    <info>Container(120).ListItem.thumb</info>
                     <fadetime>500</fadetime>
                 </control>
+
                 <control type="label">
-                    <posy>400</posy>
-                    <posx>410</posx>
-                    <align>right</align>
-                    <width>500</width>
-                    <height>180</height>
-                    <info>Container(120).Listitem.property(description)</info>
+                    <posy>160</posy>
+                    <posx>400</posx>
+                    <align>left</align>
+                    <width>600</width>
+                    <height>300</height>
+                    <info>Container(120).ListItem.property(custom:description)</info>
                     <wrapmultiline>true</wrapmultiline>
+                    <font>font16</font>
                 </control>
 
                 <!-- MENU -->

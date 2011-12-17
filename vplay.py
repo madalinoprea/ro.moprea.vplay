@@ -27,6 +27,7 @@ TV_SHOW_MENU_ITEM_ID = 201
 LOGIN_BUTTON_ID = 202           # Login/logout button
 NAVIGATION_LIST_ID = 120        # Navigation menu
 STATUS_LABEL_ID = 110           # Session status (logged in / logged out)
+TV_SHOW_IMAGE_ID = 150
 
 class Vplay(object):
     BASE_URL = 'http://vplay.ro'
@@ -285,10 +286,10 @@ class Vplay(object):
 
         # retrieve tv show description
         description = ''
-#        pattern = '''<p>(?P<description>[^<]+)</p>'''
-#        description_r = re.compile(pattern)
-#        for match in description_r.finditer(data):
-#            description = match.group('description')
+        pattern = '''<p>(?P<description>[^<]+)</p>'''
+        description_r = re.compile(pattern)
+        for match in description_r.finditer(data):
+            description = match.group('description')
 
         items = mc.ListItems()
         for match in r.finditer(data):
@@ -300,13 +301,12 @@ class Vplay(object):
             item.SetTitle(season['title'])
             item.SetTVShowTitle(tv_show_item.GetTVShowTitle())
             item.SetThumbnail(tv_show_item.GetThumbnail())
-            item.SetDescription(description)
 
             # Set custom
             item.SetProperty('type', TV_SEASON)
             item.SetProperty('tv_show', tv_show_item.GetProperty('tv_show'))
             item.SetProperty('tv_season', season['title'])
-            item.SetProperty('tv_show_thumb', tv_show_item.GetThumbnail())
+#            item.SetProperty('tv_show_thumb', tv_show_item.GetThumbnail())
             item.SetProperty('description', description)
 
             items.append(item)
