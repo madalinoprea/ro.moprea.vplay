@@ -342,7 +342,7 @@ class Vplay(mc.Player):
         data = self.http.Get(url)
 
         pattern = '''<a href="(?P<path>\S+)" title="(?P<full_title>.*)" class="coll-episode-box">
-			<span class="thumb" style="background-image:url\((?P<image>\S+)\);"></span>([\s\v]+)<span class="title" title="(?P<title>.*)"(.*)>([\s\v]+)(<span class="(?P<watched>.*)">)?'''
+			<span class="thumb" style="background-image:url\((?P<image>\S+)\);"></span>([\s\v]+)<span class="title" title="(?P<title>.*)"(.*)>([\s\v]+)(?P<watched><span class="watch">)?'''
         r = re.compile(pattern)
 
         items = mc.ListItems()
