@@ -9,6 +9,9 @@ Current status: alpha (don't be fulled by version number)
 
 ## Release Notes
 
+### Version 2.3
+ - Fixes markup for seasons
+
 ### Version 2.1
  - Update app to work with new Vplay's design
  - Watched episode are marked
