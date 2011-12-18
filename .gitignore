@@ -1,4 +1,6 @@
 # Ignore files
 .idea
 *.pyo
+*.pyc
 .DS_Store
+vplay/local_settings.py
