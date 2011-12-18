@@ -167,9 +167,13 @@ class VplayApp(mc.Player):
         if self.GetLastPlayerEvent() == self.EVENT_ENDED:
             # do we have a next episode
             if self.last_played_episode + 1 < len(items):
-                # TODO: Check if next item is nav
                 list.SetFocusedItem(self.last_played_episode + 1)
+                current_item = list.GetItem(self.last_played_episode + 1)
                 self.load_next()
+
+                # If current item is nav item, we have to play first item on next page
+                if current_item.GetProperty('type') in (HD_VIDEOS_PAGE, ):
+                    self.load_next()
             else:
                 # only focus last played episode
                 list.SetFocusedItem(self.last_played_episode)
