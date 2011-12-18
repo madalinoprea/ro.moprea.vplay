@@ -74,7 +74,7 @@
                     <focusedcolor>ffffffff</focusedcolor>
                     <texturefocus>ba_overlay.png</texturefocus>
                     <texturenofocus>ba_overlay2.png</texturenofocus>
-                    <onclick lang="python"><![CDATA[v.hd_videos()]]></onclick>
+                    <onclick lang="python"><![CDATA[v.load_hd_videos()]]></onclick>
                 </control>
                 <control type="button" id="205">
                     <width>200</width>
@@ -88,7 +88,7 @@
                     <focusedcolor>ffffffff</focusedcolor>
                     <texturefocus>ba_overlay.png</texturefocus>
                     <texturenofocus>ba_overlay2.png</texturenofocus>
-                    <onclick lang="python"><![CDATA[v.search()]]></onclick>
+                    <onclick lang="python"><![CDATA[v.search_videos()]]></onclick>
                 </control>
                 <control type="button" id="202">
                     <width>150</width>

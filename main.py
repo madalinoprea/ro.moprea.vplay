@@ -1,6 +1,6 @@
 import mc
-from vplay import Vplay
+from app import VplayApp
 
-v = Vplay()
+v = VplayApp()
 
 mc.ActivateWindow(14000)

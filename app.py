@@ -1,15 +1,13 @@
 __author__ = 'madalinoprea'
 
 import mc
+import xbmc
 
+from datetime import timedelta
 import simplejson as json
 
-
-import re
-import random
-from datetime import timedelta
-
-import xbmc
+from vplay.urls import VplayUrls
+from vplay.regex import VplayRegex
 
 # See http://developer.boxee.tv/MC_Module
 
@@ -18,7 +16,6 @@ TV_SHOW = 'TV_SHOW'
 TV_SHOW_PAGE = 'TV_SHOW_PAGE'
 TV_SEASON = 'TV_SEASON'
 TV_EPISODE = 'TV_EPISODE'
-SEARCH_PAGE = 'SEARCH_NEXT_PAGE'
 HD_VIDEOS_PAGE = 'HD_VIDEOS_PAGE'
 
 # Control IDs
@@ -29,8 +26,7 @@ NAVIGATION_LIST_ID = 120        # Navigation menu
 STATUS_LABEL_ID = 110           # Session status (logged in / logged out)
 TV_SHOW_IMAGE_ID = 150
 
-class Vplay(mc.Player):
-    BASE_URL = 'http://vplay.ro'
+class VplayApp(mc.Player):
     MAX_FAILED_LOGIN_COUNT = 3
 
     def log(self, msg):
@@ -44,6 +40,8 @@ class Vplay(mc.Player):
         mc.Player.__init__(self, True)
 
         self.http = mc.Http()
+        self.r = VplayRegex()
+        self.u = VplayUrls()
 
         config = mc.GetApp().GetLocalConfig()
         self.username = config.GetValue('username')
@@ -81,9 +79,6 @@ class Vplay(mc.Player):
 
         return self.password
 
-    def get_login_url(self):
-        return '%s/in' % self.get_base_url()
-
     def _login(self):
         # Erase saved credentials
         if self.failed_login_count == self.MAX_FAILED_LOGIN_COUNT:
@@ -93,20 +88,18 @@ class Vplay(mc.Player):
         password = self.get_password()
 
         if username and password:
-            params = 'usr_vplay=%s&pwd=%s&rbm=%s' % (username, password, 1)
-            response = self.http.Post(self.get_login_url(), params)
-            logged_username = self.get_username_from_page(response)
+            response = self.http.Post(self.u.get_login_url(), self.u.get_login_params(username, password))
+            logged_username = self.r.get_username(response)
 
             if logged_username:
                 self.logged_in = True
-                return True
             else:
                 self.failed_login_count = self.failed_login_count + 1
                 mc.ShowDialogNotification('Unable to log in.')
                 self.logged_in = False
-        self.update_login_status()
 
-        return False
+        self.update_login_status()
+        return self.logged_in
 
     '''
     Reset user credentials from local config so that user can re-introduce them.
@@ -144,17 +137,13 @@ class Vplay(mc.Player):
         mc.GetActiveWindow().GetLabel(STATUS_LABEL_ID).SetLabel(status_label)
         mc.GetActiveWindow().GetButton(LOGIN_BUTTON_ID).SetLabel(button_label)
 
-    # Maybe add base url as setting
-    def get_base_url(self):
-        return self.BASE_URL
-
     '''
     Executed at window load, used to update UI elements (set focus, etc)
     '''
     def on_load(self):
         # Update login status, we might already have cookies from previous run
-        response = self.http.Get(self.get_base_url())
-        username = self.get_username_from_page(response)
+        response = self.http.Get(self.u.get_base_url())
+        username = self.r.get_username(response)
         if username:
             self.logged_in = True
             self.update_login_status()
@@ -173,10 +162,12 @@ class Vplay(mc.Player):
             self.populate_tv_shows = False
             self.load_tv_shows()
 
+        self.log('Last focused item: %s' % self.last_played_episode)
         # Play the next episode
         if self.GetLastPlayerEvent() == self.EVENT_ENDED:
             # do we have a next episode
             if self.last_played_episode + 1 < len(items):
+                # TODO: Check if next item is nav
                 list.SetFocusedItem(self.last_played_episode + 1)
                 self.load_next()
             else:
@@ -186,18 +177,28 @@ class Vplay(mc.Player):
             # Maybe player is in background or user stopped the player
             list.SetFocusedItem(self.last_played_episode)
 
-    def get_tv_shows_url(self, page=1, search=None):
-        url = '%s/coll/%s?' % (self.BASE_URL, page)
-
-        if search:
-            url = '%s&s=%s' % (url, search)
-        return url
-
     def load_tv_shows(self):
         # clear nav list
         items = self.get_tv_shows()
         mc.GetActiveWindow().GetList(NAVIGATION_LIST_ID).SetItems(items)
         mc.GetActiveWindow().PushState()
+
+    '''
+    Search tv shows
+    '''
+    def search_tv_shows(self):
+        query = mc.ShowDialogKeyboard('Enter search query', '', False)
+        items = self.get_tv_shows(query)
+        mc.GetActiveWindow().GetList(NAVIGATION_LIST_ID).SetItems(items)
+
+    def load_hd_videos(self):
+        items = self.get_hd_videos()
+        mc.GetActiveWindow().GetList(NAVIGATION_LIST_ID).SetItems(items)
+
+    def search_videos(self):
+        query = mc.ShowDialogKeyboard('Enter search query', '', False)
+        items = self.get_hd_videos(query=query)
+        mc.GetActiveWindow().GetList(NAVIGATION_LIST_ID).SetItems(items)
 
     '''
     App main controller - handles nav list's clicks
@@ -220,13 +221,10 @@ class Vplay(mc.Player):
             elif item_type == TV_EPISODE:
                 self.last_played_episode = list.GetFocusedItem()
                 self.play_episode(item)
-            elif item_type == SEARCH_PAGE:
+            elif item_type == HD_VIDEOS_PAGE:
                 query = item.GetProperty('query')
                 page = item.GetProperty('page')
-                self.search(query, page)
-            elif item_type == HD_VIDEOS_PAGE:
-                page = item.GetProperty('page')
-                items = self.hd_videos(page)
+                items = self.get_hd_videos(page, query)
         else:
             # Load default list
             items = self.get_tv_shows()
@@ -259,31 +257,22 @@ class Vplay(mc.Player):
             item.SetLabel('Prev Page')
             item.SetProperty('type', nav_type)
             item.SetProperty('page', str(page-1))
-            item.SetProperty('query', query)
+            if query:
+                item.SetProperty('query', query)
             items.append(item)
 
     '''
     Returns a list of tv shows
     '''
     def get_tv_shows(self, search=None, page='1'):
-        data = self.http.Get(self.get_tv_shows_url(page=page, search=search))
+        data = self.http.Get(self.u.get_tv_shows_url(page=int(page), search=search))
         page = int(page)
 
-        founded = []
-        pattern = '<a href="(?P<path>\S+)" title="(?P<title>[^"]+)"><span class="coll_poster" title="([^"]+)" style="background-image:url\((?P<image>\S+)\);">'
-
-        r = re.compile(pattern)
-        matches = r.finditer(data)
-        for m in matches:
-            founded.append(m.groupdict())
-
         items = mc.ListItems()
-
-        # match[2] Image
-        for show in founded:
+        for show in self.r.get_tv_shows(data):
             show_item = mc.ListItem(mc.ListItem.MEDIA_UNKNOWN)
-            show_item.SetLabel(show['title'])    # Title
-            show_item.SetPath(show['path'])     # Path
+            show_item.SetLabel(show['title'])
+            show_item.SetPath(show['path'])
             show_item.SetTitle(show['title'])
             show_item.SetTVShowTitle(show['title'])
             show_item.SetThumbnail(show['image'])
@@ -303,22 +292,11 @@ class Vplay(mc.Player):
     Returns a list of seasons for tv_show show
     '''
     def get_seasons(self, tv_show_item):
-        url = '%s%s' % (self.get_base_url(), tv_show_item.GetPath())
-        data = self.http.Get(url)
-        pattern = '<a class="([^"]*)" href="(?P<path>\S+)"><span>(?P<title>[a-zA-Z0-9 ]+)</span>'
-        r = re.compile(pattern)
-
-        # retrieve tv show description
-        description = ''
-        pattern = '''<p>(?P<description>[^<]+)</p>'''
-        description_r = re.compile(pattern)
-        for match in description_r.finditer(data):
-            description = match.group('description')
+        data = self.http.Get(self.u.get_tv_seasons_url(tv_show_item.GetPath()))
+        description = self.r.get_tv_show_description(data)
 
         items = mc.ListItems()
-        for match in r.finditer(data):
-            season = match.groupdict()
-
+        for season in self.r.get_tv_seasons(data):
             item = mc.ListItem(mc.ListItem.MEDIA_UNKNOWN)
             item.SetLabel(season['title'])
             item.SetPath(season['path'])
@@ -340,16 +318,10 @@ class Vplay(mc.Player):
     Returns a list of episodes for season
     '''
     def get_episodes(self, season_item):
-        url = '%s%s' % (self.get_base_url(), season_item.GetPath())
-        data = self.http.Get(url)
-
-        pattern = '''<a href="(?P<path>\S+)" title="(?P<full_title>.*)" class="coll-episode-box">
-			<span class="thumb" style="background-image:url\((?P<image>\S+)\);"></span>([\s\v]+)<span class="title" title="(?P<title>.*)"(.*)>([\s\v]+)(?P<watched><span class="watch">)?'''
-        r = re.compile(pattern)
+        data = self.http.Get(self.u.get_tv_seasons_url(season_item.GetPath()))
 
         items = mc.ListItems()
-        for match in r.finditer(data):
-            episode = match.groupdict()
+        for episode in self.r.get_tv_episodes(data):
             watched = ''
             if episode['watched']:
                 watched = '(Watched)'
@@ -370,6 +342,28 @@ class Vplay(mc.Player):
             items.append(item)
         return items
 
+    def get_hd_videos(self, page='1', query=''):
+        page = int(page)
+        data = self.http.Get(self.u.get_hdvideos_url(page, query))
+
+        items = mc.ListItems()
+        for video in self.r.get_videos(data):
+            item = mc.ListItem(mc.ListItem.MEDIA_UNKNOWN)
+            item.SetLabel('%s (%s)' % (video['title'], video['duration']))
+            item.SetPath(video['path'])
+            item.SetTitle(video['title'])
+            item.SetTVShowTitle(video['title'])
+            item.SetThumbnail(video['image'])
+            item.SetProperty('type', TV_EPISODE)
+            item.SetProperty('tv_show', 'Videos')
+            item.SetProperty('tv_season', '')
+            item.SetProperty('tv_show_thumb', video['image'])
+            items.append(item)
+
+        # Add nav buttons
+        self._append_nav(items, page, HD_VIDEOS_PAGE, query)
+        return items
+
     '''
     Converts Vplay subtitle time into sub format
     '''
@@ -377,17 +371,16 @@ class Vplay(mc.Player):
         return '%s,0' % str(timedelta(seconds=f))
 
     def _load_subs(self, episode_key, lang='RO'):
-        subs_url = '%s/play/subs.do' % self.get_base_url()
-        params = 'key=%s&lang=%s' % (episode_key, lang)
-        sub_raw_data = self.http.Post(subs_url, params)
-        file_path = mc.GetTempDir() + lang + '_' + episode_key + '.sub'
+        sub_raw_data = self.http.Post(self.u.get_subs_url(), self.u.get_subs_params(episode_key, lang))
+        file_path = None
 
         if sub_raw_data:
+            file_path = mc.GetTempDir() + lang + '_' + episode_key + '.sub'
             try:
-                sub_data = sub_raw_data.strip('&subsData=').rstrip('\n')
+                sub_data = self.r.get_sub(sub_raw_data)
                 sub_json = json.loads(sub_data)
-                file = open(file_path, mode='w+')
 
+                file = open(file_path, mode='w+')
                 count = 1
                 for json_line in sub_json:
                     line = '%d \n%s --> %s\n%s\n\n' % (count,
@@ -406,32 +399,21 @@ class Vplay(mc.Player):
         return file_path
 
     def play_episode(self, episode_item):
-        episode_path = episode_item.GetPath()
-        episode_url = '%s%s' % (self.get_base_url(), episode_path)
-        match=re.compile('http://vplay.ro/watch/(.+?)/').findall(episode_url)
-        episode_id = match[0]
-        url = '%s/play/dinosaur.do' % self.get_base_url()
-        params = 'key=%s' % episode_id
-        data = self.http.Post(url, params)
+        episode_url = self.u.get_tv_episode_url(episode_item.GetPath())
+        episode_key = self.r.get_tv_episode_key(episode_url)
+        data = self.http.Post(self.u.get_dino_url(), self.u.get_dino_params(episode_key))
 
         if not len(data):
             self.notify('Unable to contact dino. Please check your login status.')
 
-        # Parse received data
-        vals = data.split('&')
-        attrs = {}
-        for val in vals:
-            if len(val) == 0:
-                continue
-            option = val.split('=')
-            attrs[option[0]] = option[1]
+        dino_data = self.r.get_dino(data)
 
         # Find subtitles
         sub_file_path = None
         selected_lang = None
         available_languages = []
-        if 'subs' in attrs:
-            for lang in json.loads(attrs['subs']):
+        if dino_data['subs']:
+            for lang in json.loads(dino_data['subs']):
                 available_languages.append(str(lang))
 
         self.log('Available languages: %s' % available_languages)
@@ -446,8 +428,9 @@ class Vplay(mc.Player):
         else:
             if len(available_languages) == 1:
                 selected_lang = available_languages[0]
+
         if selected_lang:
-            sub_file_path = self._load_subs(episode_id, selected_lang)
+            sub_file_path = self._load_subs(episode_key, selected_lang)
 
         # Create Player Item
         list_item_type = mc.ListItem.MEDIA_VIDEO_CLIP
@@ -457,8 +440,8 @@ class Vplay(mc.Player):
             list_item_type = mc.ListItem.MEDIA_VIDEO_EPISODE
 
         item = mc.ListItem(list_item_type)
-        item.SetPath(attrs['nqURL'])
-        item.SetIcon(attrs['th'])
+        item.SetPath(dino_data['url'])
+        item.SetIcon(dino_data['thumb'])
         item.SetTitle(episode_item.GetTitle())
         item.SetTVShowTitle('%s / %s' % (episode_item.GetTVShowTitle(), episode_item.GetProperty('tv_season')))
         item.SetThumbnail(episode_item.GetProperty('tv_show_thumb'))
@@ -472,85 +455,3 @@ class Vplay(mc.Player):
 #                 xbmc.sleep(1000)
              # Hints: http://xbmc.sourceforge.net/python-docs/xbmc.html
              xbmc.Player().setSubtitles(sub_file_path)
-
-    '''
-    Search tv shows
-    '''
-    def search_tv_shows(self):
-        query = mc.ShowDialogKeyboard('Enter search query', '', False)
-        items = self.get_tv_shows(query)
-        mc.GetActiveWindow().GetList(NAVIGATION_LIST_ID).SetItems(items)
-
-    def search(self, query=None, page='1'):
-        page = int(page)
-        if not query:
-            query = mc.ShowDialogKeyboard('Enter search query', '', False)
-
-        # TODO: search and hd_videos are almost identical
-        url = '%s/cat/all/%s/%d' % (self.get_base_url(), query, page)
-        data = self.http.Get(url)
-        pattern = '<a href="(?P<path>\S+)" class="article" data="(?P<shit>\S+)"><span class="thumbnail"><b>(?P<duration>[0-9:]+)</b><img src="(?P<image>[^"]+)" alt="(?P<title>[^"]+)">'
-        r = re.compile(pattern)
-        matches = r.finditer(data)
-
-        items = mc.ListItems()
-        for match in matches:
-            video = match.groupdict()
-
-            item = mc.ListItem(mc.ListItem.MEDIA_UNKNOWN)
-            item.SetLabel('%s (%s)' % (video['title'], video['duration']))
-            item.SetPath(video['path'])
-            item.SetTitle(video['title'])
-            item.SetTVShowTitle(video['title'])
-            item.SetThumbnail(video['image'])
-            item.SetProperty('type', TV_EPISODE)
-            item.SetProperty('tv_show', 'Videos')
-            item.SetProperty('tv_season', '')
-            item.SetProperty('tv_show_thumb', video['image'])
-            items.append(item)
-
-        self._append_nav(items, page, SEARCH_PAGE, query)
-
-        mc.GetActiveWindow().GetList(NAVIGATION_LIST_ID).SetItems(items)
-
-    def hd_videos(self, page='1'):
-        page = int(page)
-        url = '%s/cat/all/%d' % (self.get_base_url(), page)
-        data = self.http.Get(url)
-        pattern = '<a href="(?P<path>\S+)" class="article" data="(?P<shit>\S+)"><span class="thumbnail"><b>(?P<duration>[0-9:]+)</b><img src="(?P<image>[^"]+)" alt="(?P<title>[^"]+)">'
-
-        r = re.compile(pattern)
-        matches = r.finditer(data)
-
-        items = mc.ListItems()
-        for match in matches:
-            video = match.groupdict()
-
-            item = mc.ListItem(mc.ListItem.MEDIA_UNKNOWN)
-            item.SetLabel('%s (%s)' % (video['title'], video['duration']))
-            item.SetPath(video['path'])
-            item.SetTitle(video['title'])
-            item.SetTVShowTitle(video['title'])
-            item.SetThumbnail(video['image'])
-            item.SetProperty('type', TV_EPISODE)
-            item.SetProperty('tv_show', 'Videos')
-            item.SetProperty('tv_season', '')
-            item.SetProperty('tv_show_thumb', video['image'])
-            items.append(item)
-
-        # Add nav buttons
-        self._append_nav(items, page, HD_VIDEOS_PAGE)
-
-        mc.GetActiveWindow().GetList(NAVIGATION_LIST_ID).SetItems(items)
-
-    '''
-    Returns username of current session or None if session is not authenticated
-    '''
-    def get_username_from_page(self, url_response):
-        r = re.compile('<a href="/(?P<profile_url>[^"]+)">Hi, (?P<username>.*)</a>')
-        u = r.search(url_response)
-        if u:
-            return u.group('username')
-        else:
-            return None
-
