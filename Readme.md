@@ -2,15 +2,21 @@
 # Description
 Boxee app to browse easier video sharing site http://vplay.ro
 
-Current status: alpha (don't be fulled by version number)
+Current status: beta (don't be fulled by version number)
 
 ## TODO
- - None
+ - Enable support for multiple subtitles associated to a tv episode (EN, BG, etc) - waiting to get by boxeebox back
+
 
 ## Release Notes
 
-### Version 2.4 (not released)
- - Implement support for multiple subtitles associated to a tv episode (EN, BG, etc)
+### Version 2.5 (Not released)
+ - Automatically play first episode on next page
+ - Make sure all videos are retrieved (last one from the every row was ignored)
+ - BG changed and other minor UI improvements
+ - Core classes created for regex rules and urls; Tests created to verify regex rules
+
+### Version 2.4 
  - Automatically play next episode
  - Shows video window thumbnail when player is in background; Allows to return into fullscreen mode
  - Shows tv show description in season list
