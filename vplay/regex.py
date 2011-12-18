@@ -18,6 +18,7 @@ class VplayRegex(object):
         # Videos
         self.videos = re.compile('<a href="(?P<path>\S+)" class="article(  last-box-row")?" data="(?P<shit>\S+)"><span class="thumbnail"><b>(?P<duration>[0-9:]+)</b><img src="(?P<image>[^"]+)" alt="(?P<title>[^"]+)">')
         self.username = re.compile('<a href="/(?P<profile_url>[^"]+)">Hi, (?P<username>.*)</a>')
+        self.top50 = re.compile('<a href="(?P<path>\S+)" title="(?P<title>[^"]+)">([\s\v]+)<span class="thumb" style="background-image:url\((?P<image>\S+)\);"></span>')
 
     def get_username(self, data):
         match = self.username.search(data)
@@ -64,3 +65,7 @@ class VplayRegex(object):
             return match.groupdict()['data']
         else:
             return None
+
+    def get_top50_videos(self, data):
+        for match in self.top50.finditer(data):
+            yield match.groupdict()

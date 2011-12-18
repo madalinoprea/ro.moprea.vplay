@@ -18,15 +18,6 @@
                 <texture>night_snow_bg.jpg</texture>
                 <aspectratio>keep</aspectratio>
             </control>
-            <control type="label" id="110">
-                <posy>10</posy>
-                <posx>1260</posx>
-                <width>400</width>
-                <align>right</align>
-                <font>font21b</font>
-                <color>white</color>
-                <label></label>
-            </control>
             <control type="grouplist" id="200">
                 <posy>10</posy>
                 <posx>30</posx>
@@ -89,8 +80,22 @@
                     <texturenofocus>ba_overlay2.png</texturenofocus>
                     <onclick lang="python"><![CDATA[v.search_videos()]]></onclick>
                 </control>
+                <!--<control type="button" id="209">-->
+                    <!--<width>200</width>-->
+                    <!--<height>40</height>-->
+                    <!--<label>TOP50 VIDEOS</label>-->
+                    <!--<font>font21b</font>-->
+                    <!--<align>center</align>-->
+                    <!--<textoffsety>7</textoffsety>-->
+                    <!--<aligny>top</aligny>-->
+                    <!--<textcolor>ffbdbdbd</textcolor>-->
+                    <!--<focusedcolor>ffffffff</focusedcolor>-->
+                    <!--<texturefocus>ba_overlay.png</texturefocus>-->
+                    <!--<texturenofocus>ba_overlay2.png</texturenofocus>-->
+                    <!--<onclick lang="python"><![CDATA[v.load_top50_videos()]]></onclick>-->
+                <!--</control>-->
                 <control type="button" id="202">
-                    <width>150</width>
+                    <width>250</width>
                     <height>40</height>
                     <label>Log In</label>
                     <font>font21b</font>
@@ -161,6 +166,8 @@
                     <height>477</height>
                     <onup>200</onup>
                     <onleft>200</onleft>
+                    <!-- Right and down go to toggle fullscreen -->
+                    <onright>7001</onright>
                     <ondown>7001</ondown>
                     <scrolltime>200</scrolltime>
                     <orientation>vertical</orientation>
@@ -216,10 +223,10 @@
         </control>
         <control type="group">
             <posx>15</posx>
-            <posy>540</posy>
+            <posy>530</posy>
             <control type="button" id="7001">
                 <width>354</width>
-                <height>206</height>
+                <height>190</height>
                 <texturenofocus>181818.png</texturenofocus>
                 <texturefocus>green.png</texturefocus>
                 <visible>Player.HasVideo</visible>
@@ -227,15 +234,15 @@
                 <onclick>ActivateWindow(FullscreenVideo)</onclick>
                 <onup>120</onup>
                 <ondown>200</ondown>
-                <onleft>-</onleft>
-                <onright>-</onright>
+                <onleft>120</onleft>
+                <onright>120</onright>
             </control>
             <control type="videowindow">
                 <visible>Player.HasVideo</visible>
                 <posx>5</posx>
                 <posy>5</posy>
                 <width>344</width>
-                <height>196</height>
+                <height>180</height>
                 <aspectratio>keep</aspectratio>
             </control>
         </control>

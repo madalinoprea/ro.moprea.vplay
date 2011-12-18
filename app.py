@@ -23,7 +23,6 @@ TOP_MENU_LIST_ID = 200
 TV_SHOW_MENU_ITEM_ID = 201
 LOGIN_BUTTON_ID = 202           # Login/logout button
 NAVIGATION_LIST_ID = 120        # Navigation menu
-STATUS_LABEL_ID = 110           # Session status (logged in / logged out)
 TV_SHOW_IMAGE_ID = 150
 
 class VplayApp(mc.Player):
@@ -129,12 +128,9 @@ class VplayApp(mc.Player):
     '''
     def update_login_status(self):
         button_label = 'Login'
-        status_label = 'Logged out'
         if self.logged_in:
-            button_label = 'Logout'
-            status_label = 'Logged as %s' % self.username
+            button_label = 'Logout %s' % self.username
 
-        mc.GetActiveWindow().GetLabel(STATUS_LABEL_ID).SetLabel(status_label)
         mc.GetActiveWindow().GetButton(LOGIN_BUTTON_ID).SetLabel(button_label)
 
     '''
@@ -147,7 +143,6 @@ class VplayApp(mc.Player):
         if username:
             self.logged_in = True
             self.update_login_status()
-            self.notify('Already authenticated as %s' % username)
 
         # Enforce login
         if not self.logged_in:
@@ -202,6 +197,10 @@ class VplayApp(mc.Player):
     def search_videos(self):
         query = mc.ShowDialogKeyboard('Enter search query', '', False)
         items = self.get_hd_videos(query=query)
+        mc.GetActiveWindow().GetList(NAVIGATION_LIST_ID).SetItems(items)
+
+    def load_top50_videos(self):
+        items = self.get_top50_videos()
         mc.GetActiveWindow().GetList(NAVIGATION_LIST_ID).SetItems(items)
 
     '''
@@ -368,6 +367,24 @@ class VplayApp(mc.Player):
         self._append_nav(items, page, HD_VIDEOS_PAGE, query)
         return items
 
+    def get_top50_videos(self):
+        data = self.http.Get(self.u.get_top50_url())
+        items = mc.ListItems()
+        for video in self.r.get_top50_videos(data):
+            item = mc.ListItem(mc.ListItem.MEDIA_UNKNOWN)
+            item.SetLabel(video['title'])
+            item.SetPath(video['path'])
+            item.SetTitle(video['title'])
+            item.SetTVShowTitle(video['title'])
+            item.SetThumbnail(video['image'])
+            item.SetProperty('type', TV_EPISODE)
+            item.SetProperty('tv_show', 'Top50 Videos')
+            item.SetProperty('tv_season', '')
+            item.SetProperty('tv_show_thumb', video['image'])
+            items.append(item)
+
+        return items
+
     '''
     Converts Vplay subtitle time into sub format
     '''
@@ -403,6 +420,7 @@ class VplayApp(mc.Player):
         return file_path
 
     def play_episode(self, episode_item):
+        episode_item.Dump()
         episode_url = self.u.get_tv_episode_url(episode_item.GetPath())
         episode_key = self.r.get_tv_episode_key(episode_url)
         data = self.http.Post(self.u.get_dino_url(), self.u.get_dino_params(episode_key))
@@ -411,6 +429,7 @@ class VplayApp(mc.Player):
             self.notify('Unable to contact dino. Please check your login status.')
 
         dino_data = self.r.get_dino(data)
+        self.log('Dino data: %s' % dino_data)
 
         # Find subtitles
         sub_file_path = None

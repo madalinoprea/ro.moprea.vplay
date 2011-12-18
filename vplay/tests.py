@@ -163,6 +163,19 @@ class Test(unittest.TestCase):
         self.assertIn('image', video)
         self.assertIn('title', video)
 
+    def test_top50_videos(self):
+        response = self.opener.open(self.u.get_top50_url())
+        data = response.read()
+        videos = list(self.r.get_top50_videos(data))
+        print 'Videos: %s' % ('\n'.join(['%s' % v for v in videos]))
+        self.assertTrue(videos)
+        self.assertEqual(len(videos), 50)
+
+        # Choose random video
+        video = videos[random.randint(0, len(videos)-1)]
+        self.assertIn('path', video)
+        self.assertIn('image', video)
+        self.assertIn('title', video)
 
 if __name__ == '__main__':
     unittest.main()
