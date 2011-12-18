@@ -36,6 +36,7 @@ class VplayRegex(object):
     def get_tv_show_description(self, data):
         for match in self.tv_show_description.finditer(data):
             return match.group('description')
+        return ''
 
     def get_tv_episodes(self, data):
         for match in self.tv_episodes.finditer(data):
@@ -59,6 +60,6 @@ class VplayRegex(object):
     def get_sub(self, data):
         match = self.sub.search(data)
         if match:
-            return match.groupdict('data')
+            return match.groupdict()['data']
         else:
             return None

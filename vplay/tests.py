@@ -37,9 +37,9 @@ class Test(unittest.TestCase):
         self.assertEqual(username, USERNAME)
 
     def test_tv_show_pagination(self):
-        print 'TEST SHOW PAGINATION'
         page = random.randint(2, 100) # I assume there are more than 100 pages
         response = self.opener.open(self.u.get_tv_shows_url(page))
+        print 'TEST SHOW PAGE %s' % page
         data = response.read()
         username = self.r.get_username(data)
         self.assertEqual(username, USERNAME)
@@ -125,9 +125,8 @@ class Test(unittest.TestCase):
             data = response.read()
             sub_data = self.r.get_sub(data)
             self.assertTrue(sub_data)
-            self.assertIn('data', sub_data)
             # Check if data can be decoded
-            sub_json = json.loads(sub_data['data'])
+            sub_json = json.loads(sub_data)
 
     def test_hdvideos(self):
         page = random.randint(1, 50)

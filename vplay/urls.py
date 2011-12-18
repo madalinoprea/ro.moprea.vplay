@@ -44,8 +44,13 @@ class VplayUrls(object):
     def get_search_url(self, query, page=1):
         return '%s/cat/all/%s/%d' % (self.get_base_url(), query, page)
 
-    def get_hdvideos_url(self, page=1):
-        return  '%s/cat/all/%d' % (self.get_base_url(), page)
+    def get_hdvideos_url(self, page=1, search=None):
+        url = '%s/cat/all/' % self.get_base_url()
+        if search:
+            url = '%s/%s' % (url, search)
+        url = '%s/%d' % (url, page)
+
+        return url
 
     def get_top50_url(self):
         return '%s/top50' % self.get_base_url()
