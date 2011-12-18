@@ -4,6 +4,7 @@ import re
 
 class VplayRegex(object):
     def __init__(self):
+        # FIXME: Currently titles with " are ignored
         # TV Shows
         self.tv_shows = re.compile('<a href="(?P<path>\S+)" title="(?P<title>[^"]+)"><span class="coll_poster" title="([^"]+)" style="background-image:url\((?P<image>\S+)\);">')
         self.tv_seasons = re.compile('<a class="([^"]*)" href="(?P<path>\S+)"><span>(?P<title>[a-zA-Z0-9 ]+)</span>')
